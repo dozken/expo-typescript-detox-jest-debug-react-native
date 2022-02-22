@@ -1,3 +1,5 @@
+# Example of React Native + Expo + Typescript + Detox + Jest + Debug mode
+
 ## Installation
 1. `yarn install`
 2. `expo prebuild`
