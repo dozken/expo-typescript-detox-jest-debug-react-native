@@ -14,3 +14,8 @@
 5. `yarn build:ios-debug`
 6. `yarn ios`
 7. `yarn test:ios-debug --watch`
+
+
+### Links
+https://github.com/expo/config-plugins/tree/master/packages/detox  
+https://github.com/wix/Detox/blob/master/examples/demo-react-native/detox.config.js
