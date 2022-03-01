@@ -25,26 +25,17 @@ jobs:
         path: node_modules
         key: node-modules-${{ hashFiles('**/yarn.lock') }}
 
-    - name: Rebuild detox
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: yarn detox clean-framework-cache && yarn detox build-framework-cache
-
-    - name: Install Dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: yarn install
-
-    - name: Cache Pods
-      uses: actions/cache@v1
-      id: podcache
-      with:
-        path: ios/Pods
-        key: pods-${{ hashFiles('**/Podfile.lock') }}
-
-    - name: Update Pods
-      run: |
-        gem update cocoapods xcodeproj
-        cd ios && pod install && cd ..
+    - run: npm install -g yarn
+    - run: yarn
+        # - run: npm install -g detox-cli
     - run: brew tap wix/brew
     - run: brew install applesimutils
-    - run: yarn build:ios-release
-    - run: yarn test:ios-release --cleanup
+    - run: npx pod-install
+
+          # run unit tests
+        # - run: yarn install
+        # - run: yarn test
+
+        # run E2E tests
+    - run : yarn build:ios-release
+    - run : yarn test:ios-release
