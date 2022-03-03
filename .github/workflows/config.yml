@@ -4,7 +4,6 @@ on: [ push ]
 
 jobs:
   ios_build_and_test:
-    needs: build
     runs-on: macos-latest
 
     steps:
@@ -24,7 +23,6 @@ jobs:
       - run: yarn test:ios-release
 
   android_build_and_test:
-    needs: build
     runs-on: macos-latest
 
     steps:
