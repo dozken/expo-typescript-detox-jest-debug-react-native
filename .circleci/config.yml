@@ -1,20 +1,15 @@
 jobs:
   analyse_js:
-    executor: rn/linux_js
+    executor:
+      name: rn/linux_js
+      node_version: "14"
     steps:
       - attach_workspace:
           at: .
-      - rn/yarn_install:
-          cache: false
+      - rn/yarn_install
 #      - run:
-#          command: yarn eslint
-#          name: Run ESLint
-#      - run:
-#          command: yarn flow
-#          name: Flow
-#      - run:
-#          command: yarn jest
-#          name: Jest
+#          command: yarn test
+#          name: Run Tests
   checkout_code:
     executor:
       name: rn/linux_js
@@ -24,24 +19,144 @@ jobs:
       - persist_to_workspace:
           paths: .
           root: .
-#  fastlane_android_release:
-#    executor: rn/linux_js
-#    steps:
-#      - attach_workspace:
-#          at: .
-#      - rn/yarn_install
-#      - run:
-#          command: echo
-#          name: Run Fastlane
-#  fastlane_ios_release:
-#    executor: rn/linux_js
-#    steps:
-#      - attach_workspace:
-#          at: .
-#      - rn/yarn_install
-#      - run:
-#          command: echo 1
-#          name: Run Fastlane
+  android_e2e_test:
+    # Using a mac (:
+    executor:
+      name: rn/macos
+    steps:
+      - attach_workspace:
+          at: .
+      - rn/setup_macos_executor:
+          homebrew_cache: true
+          node_version: "12"
+      - rn/yarn_install:
+          # basically because of this https://github.com/react-native-community/react-native-circleci-orb/issues/66
+          cache: false
+      - run:
+          # For my app and react native in general java8 is needed. The default version on this executor was default to java10 for some reason, so this kinda solve that issue.
+          # just installing java, android sdk, and needed tools.
+          command: >
+            java -version
+            
+            brew tap adoptopenjdk/openjdk
+            
+            brew install --cask adoptopenjdk/openjdk/adoptopenjdk8
+            
+            java -version
+            
+            export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+            
+            mkdir -p ~/.android && touch ~/.android/repositories.cfg
+            
+            java -version
+            
+            yes | sdkmanager "platform-tools" "tools" >/dev/null
+            
+            yes | sdkmanager "platforms;android-29"
+            "system-images;android-29;default;x86_64" >/dev/null
+            
+            yes | sdkmanager "emulator" --channel=3 >/dev/null
+            
+            yes | sdkmanager "build-tools;29.0.2" >/dev/null
+            
+            yes | sdkmanager --licenses >/dev/null
+            
+            yes | sdkmanager --list
+          name: Install Android Emulator
+          shell: /bin/bash -e
+      - run:
+          command: |
+            adb start-server
+            adb devices
+            adb kill-server
+            ls -la ~/.android
+          name: ADB Start Stop
+      - run:
+          # Note we are using a pixel_xl as the test device, feel free to change it for one better fits your app
+          command: |
+            export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+            avdmanager create avd --force --name EMULATOR --package "system-images;android-29;default;x86_64" --tag default --device pixel_xl
+          name: Create Android Emulator
+      - run:
+          background: true
+          command: |
+            export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+            $ANDROID_HOME/emulator/emulator @EMULATOR -version
+            $ANDROID_HOME/emulator/emulator @EMULATOR -cores 2 -gpu auto
+            -accel on -memory 2048 -no-audio -no-snapshot -no-boot-anim
+            -no-window -logcat *:W | grep -i
+            'ReactNative\|com.reactnativecommunity'
+          name: Start Android EMULATOR (background)
+      - run:
+          command: >
+            # export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+            
+            export BOOT=""
+            
+            echo "Waiting for AVD to finish booting"
+            
+            export PATH=$(dirname $(dirname $(command -v
+            android)))/platform-tools:$PATH
+            
+            until [[ "$BOOT" =~ "1" ]]; do
+              sleep 5
+              export BOOT=$(adb -e shell getprop sys.boot_completed 2>&1)
+            done
+            
+            sleep 15
+            
+            adb shell settings put global window_animation_scale 0
+            
+            adb shell settings put global transition_animation_scale 0
+            
+            adb shell settings put global animator_duration_scale 0
+            
+            echo "Android Virtual Device is now ready."
+          name: Wait for AVD to be ready
+          no_output_timeout: 5m
+      # Creates the detox build using the orb job
+      - rn/detox_build:
+          configuration: "android.emu.release"
+      # Tests the app, you can use rn/detox_test, but I wanted to take screenshots when test fails so I can have a better idea of why did they fail.
+      - run:
+          command: >-
+            yarn test:android-release --artifacts-location /tmp/detox_artifacts
+          name: Detox Test
+      # Save the screenshots as artifacts, you can see then in the artifact tab for the job in CircleCI
+      - store_artifacts:
+          path: /tmp/detox_artifacts
+
+  ios_e2e_test:
+    executor: rn/macos
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - rn/setup_macos_executor:
+          homebrew_cache: true
+          node_version: "14"
+      - rn/ios_simulator_start:
+          device: "iPhone 11"
+      - rn/yarn_install:
+          # basically because of this https://github.com/react-native-community/react-native-circleci-orb/issues/66
+          cache: false
+      - rn/pod_install:
+          pod_install_directory: ios
+      # Yep, it doesn't really matter if you don't run detox build for ios, it works like a charm. But if you prefer, you can replace this step with a custom one.
+      - rn/ios_build:
+          build_configuration: "Release"
+          cache: false
+          derived_data_path: "ios/build"
+          device: "iPhone 11"
+          project_path: "ios/myexpo.xcworkspace"
+          project_type: workspace
+          scheme: "myexpo"
+      - run:
+          command: >-
+            yarn test:ios-release --artifacts-location /tmp/detox_artifacts
+          name: Detox Test
+      - store_artifacts:
+          path: /tmp/detox_artifacts
 orbs:
   rn: react-native-community/react-native@6.8.1
 version: 2.1
@@ -52,43 +167,6 @@ workflows:
       - analyse_js:
           requires:
             - checkout_code
-#      - rn/android_build:
-#          build_type: debug
-#          name: build_android_debug
-#          project_path: android
-#          requires:
-#            - analyse_js
-      - rn/android_build:
-          build_type: release
-          name: build_android_release
-          project_path: android
+      - ios_e2e_test:
           requires:
             - analyse_js
-      - rn/android_test:
-          detox_configuration: android.emu.release
-          requires:
-            - build_android_release
-#      - rn/ios_build:
-#          build_configuration: Release
-#          device: iPhone X
-#          name: build_ios_release
-#          node_version: '16'
-#          project_path: ios/Example.xcodeproj
-#          requires:
-#            - analyse_js
-#          scheme: Example
-#      - rn/ios_build_and_test:
-#          build_configuration: Release
-#          detox_configuration: ios.sim.release
-#          device: iPhone X
-#          node_version: '16'
-#          project_path: ios/Example.xcodeproj
-#          requires:
-#            - analyse_js
-#          scheme: Example
-#      - fastlane_android_release:
-#          requires:
-#            - rn/android_test
-#      - fastlane_ios_release:
-#          requires:
-#            - rn/ios_build_and_test
