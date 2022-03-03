@@ -17,7 +17,7 @@ jobs:
   #          npm test
   build-android:
     needs: install-and-test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -25,15 +25,14 @@ jobs:
           node-version: '14'
 
       # install android dependencies
-      - name: create AVD and generate snapshot for caching
-          uses: reactivecircus/android-emulator-runner@v2
-          with:
-            api-level: 30
-            avd-name: Pixel_API_28_AOSP
-            force-avd-creation: false
-            emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-            disable-animations: false
-            script: echo "Generated AVD snapshot for caching."
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          avd-name: Pixel_API_28_AOSP
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
 
       # run E2E tests
       - run: yarn build:android-release
@@ -47,8 +46,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-#      - run: npm install -g yarn
-#      - run: yarn
+      #      - run: npm install -g yarn
+      #      - run: yarn
 
       # install ios dependencies
       - run: brew tap wix/brew
