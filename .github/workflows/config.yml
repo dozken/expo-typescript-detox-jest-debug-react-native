@@ -23,8 +23,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - name: Install npm dependencies
-
 
       # install android dependencies
       - name: create AVD and generate snapshot for caching
