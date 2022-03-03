@@ -34,7 +34,7 @@ jobs:
 
       - run: |
           echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-30;default;x86_64"
-          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -f -n Pixel_API_28_AOSP --device "Nexus 5X" -k "system-images;android-30;default;x86_64"
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -f -n EMULATOR -k "system-images;android-30;default;x86_64"
 
       - run: yarn build:android-release
 
