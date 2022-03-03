@@ -1,5 +1,7 @@
 version: 2.1
 
+orbs:
+  rn: react-native-community/react-native@6.8.1
 
 jobs:
   analyse_js:
@@ -45,51 +47,50 @@ jobs:
 #          command: echo 1
 #          name: Run Fastlane
 
-orbs:
-  rn: react-native-community/react-native@6.8.1
 workflows:
-  jobs:
-    - checkout_code
-    - analyse_js:
-        requires:
-          - checkout_code
-    - rn/android_build:
-        build_type: debug
-        name: build_android_debug
-        project_path: android
-        requires:
-          - analyse_js
-    - rn/android_build:
-        build_type: release
-        name: build_android_release
-        project_path: android
-        requires:
-          - analyse_js
-    - rn/android_test:
-        detox_configuration: android.emu.release
-        requires:
-          - build_android_release
-    - rn/ios_build:
-        build_configuration: Release
-        device: iPhone X
-        name: build_ios_release
-        node_version: '14'
-        project_path: ios/myexpo.xcodeproj
-        requires:
-          - analyse_js
-        scheme: myexpo
-    - rn/ios_build_and_test:
-        build_configuration: Release
-        detox_configuration: ios.sim.release
-        device: iPhone X
-        node_version: '14'
-        project_path: ios/myexpo.xcodeproj
-        requires:
-          - analyse_js
-        scheme: myexpo
-    - fastlane_android_release:
-        requires:
-          - rn/android_test
-    - fastlane_ios_release:
-        requires:
-          - rn/ios_build_and_test
+  test:
+    jobs:
+      - checkout_code
+      - analyse_js:
+          requires:
+            - checkout_code
+      - rn/android_build:
+          build_type: debug
+          name: build_android_debug
+          project_path: android
+          requires:
+            - analyse_js
+      - rn/android_build:
+          build_type: release
+          name: build_android_release
+          project_path: android
+          requires:
+            - analyse_js
+      - rn/android_test:
+          detox_configuration: android.emu.release
+          requires:
+            - build_android_release
+      - rn/ios_build:
+          build_configuration: Release
+          device: iPhone X
+          name: build_ios_release
+          node_version: '14'
+          project_path: ios/myexpo.xcodeproj
+          requires:
+            - analyse_js
+          scheme: myexpo
+      - rn/ios_build_and_test:
+          build_configuration: Release
+          detox_configuration: ios.sim.release
+          device: iPhone X
+          node_version: '14'
+          project_path: ios/myexpo.xcodeproj
+          requires:
+            - analyse_js
+          scheme: myexpo
+      - fastlane_android_release:
+          requires:
+            - rn/android_test
+      - fastlane_ios_release:
+          requires:
+            - rn/ios_build_and_test
