@@ -1,6 +1,6 @@
 name: iOS
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:
@@ -8,34 +8,17 @@ jobs:
     timeout-minutes: 45
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
 
-    - name: Node
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
-
-    - name: Cache node modules
-      uses: actions/cache@v1
-      id: cache
-      with:
-        path: node_modules
-        key: node-modules-${{ hashFiles('**/yarn.lock') }}
-
-    - run: npm install -g yarn
-    - run: yarn
-        # - run: npm install -g detox-cli
-    - run: brew tap wix/brew
-    - run: brew install applesimutils
-    - run: npx pod-install
-
-          # run unit tests
-        # - run: yarn install
-        # - run: yarn test
+      - run: npm install -g yarn
+      - run: yarn
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+      - run: npx pod-install
 
         # run E2E tests
-    - run : yarn build:ios-release
-    - run : yarn test:ios-release
+      - run: yarn build:ios-release
+      - run: yarn test:ios-release
