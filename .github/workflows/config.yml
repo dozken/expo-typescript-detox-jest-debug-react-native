@@ -16,7 +16,7 @@ jobs:
       - run: npm install -g yarn
       - run: yarn
 
-  ios_build_&_test:
+  ios_build_and_test:
     needs: build
     runs-on: macos-latest
 
@@ -29,7 +29,7 @@ jobs:
       - run: yarn build:ios-release
       - run: yarn test:ios-release
 
-  android_build_&_test:
+  android_build_and_test:
     needs: build
     runs-on: macos-latest
 
