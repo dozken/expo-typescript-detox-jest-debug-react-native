@@ -1,4 +1,4 @@
-name: Android
+name: e2e
 
 on: [ push ]
 
@@ -8,16 +8,32 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Node
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14'
 
+      - run: npm install -g yarn
+      - run: yarn
+
+  ios_build_&_test:
+    needs: build
+
+    steps:
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+      - run: npx pod-install
+
+        # run E2E tests
+      - run: yarn build:ios-release
+      - run: yarn test:ios-release
+
+  android_build_&_test:
+    needs: build
+
+    steps:
       - name: Use specific Java version for sdkmanager to work
-        uses: joschi/setup-jdk@v2
+          uses: joschi/setup-jdk@v2
           with:
             java-version: '11' # The OpenJDK version to make available on the path
             architecture: 'x64' # defaults to 'x64'
@@ -48,3 +64,4 @@ jobs:
 
       - name: Android Detox
         run: yarn test:android-release
+
