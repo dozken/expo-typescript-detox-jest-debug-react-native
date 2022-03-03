@@ -1,0 +1,63 @@
+name: Build Android and iOS
+on:
+  push:
+    branches:
+      - master
+jobs:
+  install-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install npm dependencies
+        run: |
+          npm install -g yarn
+          yarn
+  #      - name: Run tests
+  #        run: |
+  #          npm test
+  build-android:
+    needs: install-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install npm dependencies
+
+
+      # install android dependencies
+      - name: create AVD and generate snapshot for caching
+          if: steps.avd-cache.outputs.cache-hit != 'true'
+          uses: reactivecircus/android-emulator-runner@v2
+          with:
+            api-level: 30
+            avd-name: Pixel_API_28_AOSP
+            force-avd-creation: false
+            emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            disable-animations: false
+            script: echo "Generated AVD snapshot for caching."
+
+      # run E2E tests
+      - run: yarn build:android-release
+      - run: yarn test:android-release
+
+  build-ios:
+    needs: install-and-test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+#      - run: npm install -g yarn
+#      - run: yarn
+
+      # install ios dependencies
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+      - run: npx pod-install
+
+        # run E2E tests
+      - run: yarn build:ios-release
+      - run: yarn test:ios-release
