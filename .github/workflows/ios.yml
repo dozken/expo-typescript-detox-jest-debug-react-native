@@ -22,3 +22,5 @@ jobs:
         # run E2E tests
       - run: yarn build:ios-release
       - run: yarn test:ios-release
+
+
