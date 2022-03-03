@@ -16,7 +16,7 @@ jobs:
 
       - run: brew tap wix/brew
       - run: brew install applesimutils
-#      - run: npx pod-install
+      - run: npx pod-install
 
         # run E2E tests
       - run: yarn build:ios-release
