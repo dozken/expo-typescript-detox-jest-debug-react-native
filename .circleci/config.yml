@@ -88,9 +88,9 @@ workflows:
           requires:
             - analyse_js
           scheme: myexpo
-      - fastlane_android_release:
-          requires:
-            - rn/android_test
-      - fastlane_ios_release:
-          requires:
-            - rn/ios_build_and_test
+#      - fastlane_android_release:
+#          requires:
+#            - rn/android_test
+#      - fastlane_ios_release:
+#          requires:
+#            - rn/ios_build_and_test
