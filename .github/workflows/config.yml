@@ -24,30 +24,19 @@ jobs:
 
   android_build_and_test:
     runs-on: macos-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
       - run: npm install -g yarn
-      - run: yarn
-
-      - name: Use specific Java version for sdkmanager to work
-        uses: joschi/setup-jdk@v2
-        with:
-          java-version: '11' # The OpenJDK version to make available on the path
-          architecture: 'x64' # defaults to 'x64'
+      - run: yarn install --frozen-lockfile
 
       - name: Download Android Emulator Image
         run: |
           echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-30;default;x86_64"
           echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -f -n Pixel_API_28_AOSP --device "Nexus 5X" -k "system-images;android-30;default;x86_64"
           $ANDROID_HOME/emulator/emulator -list-avds
-
-      - name: Install node_modules
-        run: |
-          yarn install --frozen-lockfile
 
       - name: Build for detox
         run: |
