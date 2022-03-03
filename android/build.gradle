@@ -44,3 +44,16 @@ allprojects {
 def detoxMavenPath = new File(["node", "--print", "require.resolve('detox/package.json')"].execute(null, rootDir).text.trim(), "../Detox-android")
 allprojects { repositories { maven { url(detoxMavenPath) } } }
 // @generated end detox-import
+
+task downloadDependencies() {
+    description 'Download all dependencies to the Gradle cache'
+    doLast {
+        configurations.findAll().each { config ->
+            if (config.name.contains("minReactNative") && config.canBeResolved) {
+                print config.name
+                print '\n'
+                config.files
+            }
+        }
+    }
+}
