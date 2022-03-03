@@ -115,11 +115,12 @@ jobs:
           name: Wait for AVD to be ready
           no_output_timeout: 5m
       # Creates the detox build using the orb job
-      - rn/detox_build:
-          configuration: "android.emu.release"
+#      - rn/detox_build:
+#          configuration: "android.emu.release"
       # Tests the app, you can use rn/detox_test, but I wanted to take screenshots when test fails so I can have a better idea of why did they fail.
       - run:
           command: >-
+            yarn build:android-release
             yarn test:android-release --artifacts-location /tmp/detox_artifacts
           name: Detox Test
       # Save the screenshots as artifacts, you can see then in the artifact tab for the job in CircleCI
