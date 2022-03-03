@@ -1,101 +1,93 @@
-#jobs:
-#  analyse_js:
+jobs:
+  analyse_js:
+    executor: rn/linux_js
+    steps:
+      - attach_workspace:
+          at: .
+      - rn/yarn_install
+#      - run:
+#          command: yarn eslint
+#          name: Run ESLint
+#      - run:
+#          command: yarn flow
+#          name: Flow
+#      - run:
+#          command: yarn jest
+#          name: Jest
+  checkout_code:
+    executor:
+      name: rn/linux_js
+      node_version: '14'
+    steps:
+      - checkout
+      - persist_to_workspace:
+          paths: .
+          root: .
+#  fastlane_android_release:
 #    executor: rn/linux_js
 #    steps:
 #      - attach_workspace:
 #          at: .
 #      - rn/yarn_install
-##      - run:
-##          command: yarn eslint
-##          name: Run ESLint
-##      - run:
-##          command: yarn flow
-##          name: Flow
-##      - run:
-##          command: yarn jest
-##          name: Jest
-#  checkout_code:
-#    executor:
-#      name: rn/linux_js
-#      node_version: '14'
+#      - run:
+#          command: echo
+#          name: Run Fastlane
+#  fastlane_ios_release:
+#    executor: rn/linux_js
 #    steps:
-#      - checkout
-#      - persist_to_workspace:
-#          paths: .
-#          root: .
-##  fastlane_android_release:
-##    executor: rn/linux_js
-##    steps:
-##      - attach_workspace:
-##          at: .
-##      - rn/yarn_install
-##      - run:
-##          command: echo
-##          name: Run Fastlane
-##  fastlane_ios_release:
-##    executor: rn/linux_js
-##    steps:
-##      - attach_workspace:
-##          at: .
-##      - rn/yarn_install
-##      - run:
-##          command: echo 1
-##          name: Run Fastlane
-#orbs:
-#  rn: react-native-community/react-native@6.8.1
-#version: 2.1
-#workflows:
-#  test:
-#    jobs:
-#      - checkout_code
-#      - analyse_js:
-#          requires:
-#            - checkout_code
-##      - rn/android_build:
-##          build_type: debug
-##          name: build_android_debug
-##          project_path: android
-##          requires:
-##            - analyse_js
+#      - attach_workspace:
+#          at: .
+#      - rn/yarn_install
+#      - run:
+#          command: echo 1
+#          name: Run Fastlane
+orbs:
+  rn: react-native-community/react-native@5.6.2
+version: 2.1
+workflows:
+  test:
+    jobs:
+      - checkout_code
+      - analyse_js:
+          requires:
+            - checkout_code
 #      - rn/android_build:
-#          build_type: release
-#          name: build_android_release
+#          build_type: debug
+#          name: build_android_debug
 #          project_path: android
 #          requires:
 #            - analyse_js
-#      - rn/android_test:
-#          detox_configuration: android.emu.release
-#          homebrew_update: false
-#          homebrew_cache: false
-#          yarn_cache: false
+      - rn/android_build:
+          build_type: release
+          name: build_android_release
+          project_path: android
+          requires:
+            - analyse_js
+      - rn/android_test:
+          detox_configuration: android.emu.release
+          requires:
+            - build_android_release
+#      - rn/ios_build:
+#          build_configuration: Release
+#          device: iPhone X
+#          name: build_ios_release
+#          node_version: '16'
+#          project_path: ios/Example.xcodeproj
 #          requires:
-#            - build_android_release
-##      - rn/ios_build:
-##          build_configuration: Release
-##          device: iPhone 11
-##          name: build_ios_release
-##          node_version: '14'
-##          project_path: ios/myexpo.xcodeproj
-##          requires:
-##            - analyse_js
-##          scheme: myexpo
+#            - analyse_js
+#          scheme: Example
 #      - rn/ios_build_and_test:
 #          build_configuration: Release
 #          detox_configuration: ios.sim.release
-#          xcode_version: '13.3.0'
-#          device: iPhone 11
-#          node_version: '14'
-#          project_path: ios/myexpo.xcodeproj
+#          device: iPhone X
+#          node_version: '16'
+#          project_path: ios/Example.xcodeproj
 #          requires:
 #            - analyse_js
-#          scheme: myexpo
-#          yarn_cache: false
-#          homebrew_cache: false
-#
-#
-##      - fastlane_android_release:
-##          requires:
-##            - rn/android_test
-##      - fastlane_ios_release:
-##          requires:
-##            - rn/ios_build_and_test
+#          scheme: Example
+#      - fastlane_android_release:
+#          requires:
+#            - rn/android_test
+#      - fastlane_ios_release:
+#          requires:
+#            - rn/ios_build_and_test
