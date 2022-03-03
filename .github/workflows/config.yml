@@ -3,24 +3,18 @@ name: e2e
 on: [ push ]
 
 jobs:
-  build:
+  ios_build_and_test:
+    needs: build
     runs-on: macos-latest
-    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-
       - run: npm install -g yarn
       - run: yarn
 
-  ios_build_and_test:
-    needs: build
-    runs-on: macos-latest
-
-    steps:
       - run: brew tap wix/brew
       - run: brew install applesimutils
       - run: npx pod-install
@@ -34,6 +28,13 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm install -g yarn
+      - run: yarn
+
       - name: Use specific Java version for sdkmanager to work
         uses: joschi/setup-jdk@v2
         with:
