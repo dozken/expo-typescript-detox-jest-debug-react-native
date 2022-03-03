@@ -33,10 +33,10 @@ jobs:
 
     steps:
       - name: Use specific Java version for sdkmanager to work
-          uses: joschi/setup-jdk@v2
-          with:
-            java-version: '11' # The OpenJDK version to make available on the path
-            architecture: 'x64' # defaults to 'x64'
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: '11' # The OpenJDK version to make available on the path
+          architecture: 'x64' # defaults to 'x64'
 
       - name: Download Android Emulator Image
         run: |
