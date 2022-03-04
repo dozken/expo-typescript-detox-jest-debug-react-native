@@ -1,4 +1,46 @@
 jobs:
+
+  ios_expo_and_test:
+    macos:
+      xcode: "13.3.0"
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Set up environment
+      - run: npm install -g yarn expo-cli
+      - run: yarn
+
+      - run:
+          name: Login into Expo
+          command: npx expo login -u $EXPO_USERNAME -p $EXPO_PASSWORD \<<< y
+
+      - run:
+          name: Build iOS App w/ Expo
+          command: npx expo build:ios -t simulator --no-publish --non-interactive
+      - run:
+          name: Downloading .ipa from expo
+          command: curl -o /tmp/downloads/app.tar.gz "$(npx expo url:ipa --non-interactive)"
+      - run:
+          name: Un-tar app.tar.gz
+          command: tar -xzvf /tmp/downloads/app.tar.gz -C /tmp
+
+      # - run: npm install -g detox-cli
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+      - run: npx pod-install
+
+      # run unit tests
+      # - run: yarn install
+      # - run: yarn test
+
+      # run E2E tests
+      - run: yarn test:ios-expo
+      - store_artifacts:
+          path: /tmp/detox_artifacts
+
   ios_build_and_test:
     macos:
       xcode: "13.3.0"
@@ -118,5 +160,6 @@ version: 2.1
 workflows:
   test:
     jobs:
+      - ios_expo_and_test
       - ios_build_and_test
       - android_build_and_test

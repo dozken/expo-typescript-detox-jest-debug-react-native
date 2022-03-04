@@ -8,6 +8,10 @@ module.exports = {
         },
     },
     apps: {
+        'ios.expo': {
+            type: 'ios.app',
+            binaryPath: "/tmp/myexpo.app",
+        },
         'ios.release': {
             type: 'ios.app',
             binaryPath:
@@ -58,6 +62,10 @@ module.exports = {
         'ios.sim.release': {
             device: 'simulator',
             app: 'ios.release',
+        },
+        'ios.sim.expo': {
+            device: 'simulator',
+            app: 'ios.expo',
         },
         'ios.sim.debug': {
             device: 'simulator',

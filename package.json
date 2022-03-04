@@ -16,6 +16,8 @@
     "test:ios": "detox test --configuration ios.sim.debug",
     "test:ios-debug": "detox test --configuration ios.sim.debug",
     "test:ios-release": "detox test --configuration ios.sim.release",
+    "test:ios-expo": "detox test --configuration ios.sim.expo",
+
     "test:android-debug": "detox test --configuration android.emu.debug",
     "test:android-debug-device": "detox test --configuration android.real.debug",
     "test:android-release": "detox test --configuration android.emu.release",
