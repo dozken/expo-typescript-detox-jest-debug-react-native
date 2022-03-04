@@ -1,45 +1,49 @@
 jobs:
-  analyse_js:
-    executor:
-      name: rn/linux_js
-      node_version: "14"
-    steps:
-      - attach_workspace:
-          at: .
-      - rn/yarn_install
-#      - run:
-#          command: yarn test
-#          name: Run Tests
-  checkout_code:
-    executor:
-      name: rn/linux_js
-      node_version: '14'
+  ios_build_and_test:
+    macos:
+      xcode: "13.3.0"
+
+    working_directory: ~/repo
+
     steps:
       - checkout
-      - persist_to_workspace:
-          paths: .
-          root: .
-  android_e2e_test:
-    # Using a mac (:
-    executor:
-      name: rn/macos
+
+      # Set up environment
+      - run: npm install -g yarn
+      - run: yarn
+
+      # - run: npm install -g detox-cli
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+      - run: npx pod-install
+
+      # run unit tests
+      # - run: yarn install
+      # - run: yarn test
+
+      # run E2E tests
+      - run: yarn build:ios-release
+      - run: yarn test:ios-release
+      - store_artifacts:
+          path: /tmp/detox_artifacts
+
+  android_build_and_test:
+    macos:
+      xcode: "13.3.0"
+
+    working_directory: ~/repo
+
     steps:
-      - attach_workspace:
-          at: .
-      - rn/setup_macos_executor:
-          homebrew_cache: true
-          node_version: "12"
-      - rn/yarn_install:
-          # basically because of this https://github.com/react-native-community/react-native-circleci-orb/issues/66
-          cache: false
+      - checkout
+
+      # Set up environment
+      - run: npm install -g yarn
+      - run: yarn
+
       - run:
-          # For my app and react native in general java8 is needed. The default version on this executor was default to java10 for some reason, so this kinda solve that issue.
-          # just installing java, android sdk, and needed tools.
-          command: >
+          command: |
             java -version
-            
             brew tap adoptopenjdk/openjdk
-            
             brew install --cask adoptopenjdk/openjdk/adoptopenjdk8
             
             java -version
@@ -51,17 +55,14 @@ jobs:
             java -version
             
             yes | sdkmanager "platform-tools" "tools" >/dev/null
-            
             yes | sdkmanager "platforms;android-29"
+            
             "system-images;android-29;default;x86_64" >/dev/null
-            
             yes | sdkmanager "emulator" --channel=3 >/dev/null
-            
             yes | sdkmanager "build-tools;29.0.2" >/dev/null
-            
             yes | sdkmanager --licenses >/dev/null
-            
             yes | sdkmanager --list
+
           name: Install Android Emulator
           shell: /bin/bash -e
       - run:
@@ -90,78 +91,32 @@ jobs:
       - run:
           command: >
             # export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
-            
             export BOOT=""
-            
             echo "Waiting for AVD to finish booting"
-            
             export PATH=$(dirname $(dirname $(command -v
             android)))/platform-tools:$PATH
-            
             until [[ "$BOOT" =~ "1" ]]; do
               sleep 5
               export BOOT=$(adb -e shell getprop sys.boot_completed 2>&1)
             done
-            
             sleep 15
-            
             adb shell settings put global window_animation_scale 0
-            
             adb shell settings put global transition_animation_scale 0
-            
             adb shell settings put global animator_duration_scale 0
-            
             echo "Android Virtual Device is now ready."
           name: Wait for AVD to be ready
           no_output_timeout: 5m
-      # Creates the detox build using the orb job
-#      - rn/detox_build:
-#          configuration: "android.emu.release"
-      # Tests the app, you can use rn/detox_test, but I wanted to take screenshots when test fails so I can have a better idea of why did they fail.
-      - run:
-          command: |
-            yarn build:android-release
-            yarn test:android-release --artifacts-location /tmp/detox_artifacts
-          name: Detox Test
-      # Save the screenshots as artifacts, you can see then in the artifact tab for the job in CircleCI
+
+      # run E2E tests
+      - run: yarn build:android-release
+      - run: yarn test:android-release
+
       - store_artifacts:
           path: /tmp/detox_artifacts
 
-  ios_e2e_test:
-    executor: rn/macos
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - rn/setup_macos_executor:
-          homebrew_cache: true
-          node_version: "14"
-      - rn/ios_simulator_start:
-          device: "iPhone 11"
-      - rn/yarn_install:
-          # basically because of this https://github.com/react-native-community/react-native-circleci-orb/issues/66
-          cache: false
-      - run: npx pod-install
-      # Yep, it doesn't really matter if you don't run detox build for ios, it works like a charm. But if you prefer, you can replace this step with a custom one.
-      - rn/ios_build:
-          build_configuration: "Release"
-          cache: false
-          derived_data_path: "ios/build"
-          device: "iPhone 11"
-          project_path: "ios/myexpo.xcworkspace"
-          project_type: workspace
-          scheme: "myexpo"
-      - run:
-          command: >-
-            yarn test:ios-release --artifacts-location /tmp/detox_artifacts
-          name: Detox Test
-      - store_artifacts:
-          path: /tmp/detox_artifacts
-orbs:
-  rn: react-native-community/react-native@6.8.1
 version: 2.1
 workflows:
   test:
     jobs:
-      - ios_e2e_test
-      - android_e2e_test
+      - ios_build_and_test
+      - android_build_and_test
