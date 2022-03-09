@@ -20,9 +20,12 @@ workflows:
                 brew install applesimutils
                 
                 npx pod-install
-                
-                detox build --configuration ios.sim.release
-                detox test --configuration ios.sim.release --cleanup
+      - npm@1:
+          inputs:
+            - command: run build:ios-release
+      - npm@1:
+          inputs:
+            - command: run test:ios-release
       - deploy-to-bitrise-io@2:
           is_always_run: false
 meta:
