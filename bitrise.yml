@@ -19,6 +19,8 @@ workflows:
                 brew tap wix/brew
                 brew install applesimutils
                 
+                npx pod-install
+                
                 detox build --configuration ios.sim.release
                 detox test --configuration ios.sim.release --cleanup
       - deploy-to-bitrise-io@2:
