@@ -24,7 +24,7 @@
     "e2e:ios": "npm run build:ios && npm run test:ios",
     "e2e:android-debug": "npm run build:android-debug && npm run test:android-debug",
     "e2e:android-release": "npm run build:android-release && npm run test:android-release",
-    "postinstall": "npx pod-install && yarn e2e:ios"
+    "postinstall": "npx pod-install"
   },
   "jest": {
     "preset": "jest-expo"
