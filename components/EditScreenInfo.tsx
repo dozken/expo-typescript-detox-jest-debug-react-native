@@ -10,6 +10,8 @@ export default function EditScreenInfo({ path }: { path: string }) {
     <View>
       <View style={styles.getStartedContainer}>
         <Text
+            testID={'testText'}
+            accessibilityLabel={'testText'}
             style={styles.getStartedText}
             lightColor="rgba(0,0,0,0.8)"
             darkColor="rgba(255,255,255,0.8)">
