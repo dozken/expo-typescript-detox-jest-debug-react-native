@@ -1,6 +1,5 @@
 [![Build status](https://build.appcenter.ms/v0.1/apps/36524399-ae28-4ba8-a5e1-677537d8b40b/branches/master/badge)](https://appcenter.ms)
 
-
 # Example of React Native + Expo + Typescript + Detox + Jest + Debug mode
 
 ## Installation
