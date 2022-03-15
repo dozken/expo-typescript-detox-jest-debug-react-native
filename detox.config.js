@@ -54,7 +54,7 @@ module.exports = {
         emulator: {
             type: 'android.emulator',
             device: {
-                avdName: 'EMULATOR',
+                avdName: 'EMU_API_30',
             },
         },
         pixel3a: {
