@@ -18,8 +18,11 @@ jobs:
     macos:
       xcode: "13.3.0"
     steps: # a series of commands to run
+      - restore_cache:
+          keys:
+            - v1-deps-{{ checksum "yarn.lock" }}
       - run: |
-          npx nod-install
+          npx pod-install
           yarn detox-build:ios-release
           yarn detox-text:ios-release
 
