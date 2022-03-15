@@ -27,4 +27,6 @@ workflows:
   build_and_test:
     jobs:
       - checkout_and_build
-      - detox_ios
+      - detox_ios:
+          requires:
+            - checkout_and_build
