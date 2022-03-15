@@ -1,9 +1,7 @@
 version: 2.1
 
-jobs:
-  checkout_and_build:
-    macos:
-      xcode: "13.3.0"
+commands:
+  checkout_code:
     steps: # a series of commands to run
       - restore_cache:
           keys:
@@ -13,32 +11,59 @@ jobs:
           key: source-v1-{{ .Branch }}-{{ .Revision }}
           paths:
             - ".git"
-
+  install_dependencies:
+    steps:
       - restore_cache:
           keys:
-            - v1-deps-{{ checksum "yarn.lock" }}
+            - node_modules-v1-{{ checksum "yarn.lock" }}
       - run: yarn install
       - save_cache:
-          key: v1-deps-{{ checksum "yarn.lock" }}
+          key: node_modules-v1-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-  detox_ios:
-    macos:
-      xcode: "13.3.0"
-    steps: # a series of commands to run
-      - checkout
+  ios_cache:
+    steps:
       - restore_cache:
           keys:
-            - v1-deps-{{ checksum "yarn.lock" }}
+            - ios-v1-{{ checksum "ios/Podfile.lock" }}
       - run: |
           npx pod-install
-          yarn detox-build:ios-release
-          yarn detox-text:ios-release
+          yarn build:ios-release
+      - save_cache:
+          key: ios-v1-{{ checksum "ios/Podfile.lock" }}
+          paths:
+            - ios
+executors:
+  mac:
+    macos:
+      xcode: "13.3.0"
+
+jobs:
+  checkout_and_build:
+    executor: mac
+    steps:
+      - checkout_code
+      - install_dependencies
+  detox_ios_build:
+    executor: mac
+    steps: # a series of commands to run
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+      - restore_cache:
+          keys:
+            - node_modules-v1-{{ checksum "yarn.lock" }}
+      - ios_cache
+#  detox_ios_test:
+#    executor: mac
+#    steps: # a series of commands to run
+#      - checkout
+#      - ios_cache
 
 workflows:
   build_and_test:
     jobs:
       - checkout_and_build
-      - detox_ios:
+      - detox_ios_build:
           requires:
             - checkout_and_build
