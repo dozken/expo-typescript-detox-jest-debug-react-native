@@ -19,7 +19,7 @@ beforeAll(async () => {
 })
 
 
-test('Test Accessibility Id', async () => {
+xtest('Test Accessibility Id', async () => {
     expect(await driver.hasElementByAccessibilityId('testText')).toBe(true);
 
     const testTextElement = await driver.elementByAccessibilityId('testText')

@@ -74,3 +74,5 @@ dist/
 
 # @end expo-cli
 /e2e/Exponent.app/
+
+coverage

@@ -52,7 +52,7 @@ async function launchExpoIOS() {
     return client;
 }
 
-describe('Example Test', () => {
+xdescribe('Example Test', () => {
     let client: any ;
 
     beforeAll(async () => {
@@ -65,6 +65,5 @@ describe('Example Test', () => {
 
     it('test1', ()=>{
 
-        client.
     })
 });

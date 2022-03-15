@@ -7,6 +7,12 @@ module.exports = {
             exposeGlobals: false,
         },
     },
+    artifacts: {
+        rootDir: 'e2e/artefacts',
+        plugins: {
+            uiHierarchy: 'disabled',
+        },
+    },
     apps: {
         'ios.expo': {
             type: 'ios.app',
