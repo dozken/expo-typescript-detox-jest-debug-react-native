@@ -1,85 +1,30 @@
 version: 2.1
 
-orbs:
-  rn: react-native-community/react-native@6.8.1
-
 jobs:
-  checkout_code:
-    executor:
-      name: rn/linux_js
-      node_version: '14'
-    steps:
-      - checkout
-      - persist_to_workspace:
-          paths: .
-          root: .
-  analyse_js:
-    executor:
-      name: rn/linux_js
-      node_version: '14'
-    steps:
-      - attach_workspace:
-          at: .
-      - rn/yarn_install
-#      - run:
-#          command: yarn lint
-#          name: Run Linter
-#      - run:
-#          command: yarn jest
-#          name: Run Tests
+  checkout_and_build:
+    macos:
+      xcode: "13.3.0"
+    steps: # a series of commands to run
+      - checkout  # pull down code from your version control system.
+      - restore_cache:
+          keys:
+            - v1-deps-{{ checksum "yarn.lock" }}
+      - run: yarn install
+      - save_cache:
+          key: v1-deps-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
+  detox_ios:
+    macos:
+      xcode: "13.3.0"
+    steps: # a series of commands to run
+      - run: |
+          npx nod-install
+          yarn detox-build:ios-release
+          yarn detox-text:ios-release
 
 workflows:
-  test:
+  build_and_test:
     jobs:
-      - checkout_code
-      - analyse_js:
-          requires:
-            - checkout_code
-      - rn/android_build:
-          name: build_android_release
-          project_path: 'android'
-          build_type: release
-#          on_after_initialize: |
-#            bash create_env_files.sh
-          requires:
-            - analyse_js
-      - rn/android_test:
-          name: android_e2e_test
-          detox_configuration:
-            'android.emu.release --take-screenshots failing --artifacts-location
-            /tmp/detox_artifacts --cleanup --record-logs failing'
-          device_name: EMULATOR
-          platform_version: android-29
-          build_tools_version: '29.0.3'
-          yarn_cache: false
-          requires:
-            - build_android_release
-          detox_loglevel: 'verbose'
-          store_artifact_path: '/tmp/detox_artifacts'
-          should_on_after_initialize: true
-          on_after_initialize: |
-            HOMEBREW_NO_AUTO_UPDATE=1 brew tap adoptopenjdk/openjdk
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install --cask adoptopenjdk/openjdk/adoptopenjdk8
-            echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)' >> $BASH_ENV
-
-        # Build and test the iOS app in release mode
-      - rn/ios_build_and_test:
-          name: ios_e2e_test
-          checkout: true
-          project_path: 'ios/mobileApp.xcworkspace'
-          project_type: workspace
-          device: 'iPhone 13 Pro Max'
-          pod_install_directory: ios
-#          on_after_initialize: |
-#            bash create_env_files.sh
-          build_configuration: 'Release'
-          scheme: 'appScheme'
-          detox_configuration:
-            'ios.sim.release --take-screenshots failing --artifacts-location
-            /tmp/detox_artifacts --cleanup --record-logs failing'
-          detox_loglevel: 'verbose'
-          store_artifact_path: '/tmp/detox_artifacts'
-          yarn_cache: false
-          xcodebuild_cache: false
-          requires:
-            - analyse_js
+      - checkout_and_build
+      - detox_ios
