@@ -6,6 +6,8 @@ orbs:
 commands:
   install_dependencies:
     steps:
+      - node/install:
+          node-version: "14.17.0"
       - restore_cache:
           keys:
             - node_modules-v1-{{ checksum "yarn.lock" }}
@@ -29,9 +31,7 @@ executors:
   mac:
     macos:
       xcode: "13.3.0"
-    steps:
-      - node/install:
-          node-version: "14.17.0"
+
 jobs:
   checkout_and_build:
     executor: mac
@@ -46,7 +46,7 @@ jobs:
     executor: mac
     steps:
       - attach_workspace:
-            at: .
+          at: .
       - ios_cache
       - persist_to_workspace:
           root: .
@@ -56,7 +56,7 @@ jobs:
     executor: mac
     steps:
       - attach_workspace:
-            at: .
+          at: .
       - run: yarn test:ios-release
 
 workflows:
