@@ -1,4 +1,4 @@
-package com.myexpo;
+package com.node.io.apps.myexpo;
 
 import android.os.Build;
 import android.os.Bundle;
