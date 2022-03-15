@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  node: circleci/node@4.0.0
+
 commands:
   install_dependencies:
     steps:
@@ -16,9 +19,8 @@ commands:
       - restore_cache:
           keys:
             - ios-v1-{{ checksum "ios/Podfile.lock" }}
-      - run: |
-          npx pod-install
-          yarn build:ios-release
+      - run: npx pod-install
+      - run: yarn build:ios-release
       - save_cache:
           key: ios-v1-{{ checksum "ios/Podfile.lock" }}
           paths:
@@ -27,7 +29,9 @@ executors:
   mac:
     macos:
       xcode: "13.3.0"
-
+    steps:
+      - node/install:
+          node-version: "14.17.0"
 jobs:
   checkout_and_build:
     executor: mac
