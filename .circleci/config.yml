@@ -1,16 +1,6 @@
 version: 2.1
 
 commands:
-  checkout_code:
-    steps: # a series of commands to run
-      - restore_cache:
-          keys:
-            - source-v1-{{ .Branch }}-{{ .Revision }}
-      - checkout
-      - save_cache:
-          key: source-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - ".git"
   install_dependencies:
     steps:
       - restore_cache:
@@ -42,23 +32,28 @@ jobs:
   checkout_and_build:
     executor: mac
     steps:
-      - checkout_code
+      - checkout
       - install_dependencies
+      - persist_to_workspace:
+          root: .
+          paths:
+            - '*'
   detox_ios_build:
     executor: mac
-    steps: # a series of commands to run
-      - restore_cache:
-          keys:
-            - source-v1-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - node_modules-v1-{{ checksum "yarn.lock" }}
+    steps:
+      - attach_workspace:
+            at: .
       - ios_cache
-#  detox_ios_test:
-#    executor: mac
-#    steps: # a series of commands to run
-#      - checkout
-#      - ios_cache
+      - persist_to_workspace:
+          root: .
+          paths:
+            - '*'
+  detox_ios_test:
+    executor: mac
+    steps:
+      - attach_workspace:
+            at: .
+      - run: yarn test:ios-release
 
 workflows:
   build_and_test:
@@ -67,3 +62,6 @@ workflows:
       - detox_ios_build:
           requires:
             - checkout_and_build
+      - detox_ios_test:
+          requires:
+            - detox_ios_build
