@@ -37,7 +37,7 @@ jobs:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-#      resource_class: macos.x86.medium.gen2
+    #      resource_class: macos.x86.medium.gen2
     steps:
       - attach_workspace:
           at: .
@@ -92,9 +92,9 @@ jobs:
           restore-gradle-cache-prefix: v1a
           post-emulator-launch-assemble-command: "pwd"
       - android/disable-animations
-      #   - run:
-      #       command: npm install --global yarn
-      #       name: install yarn
+      - run:
+          command: npm install --global yarn
+          name: install yarn
       - run:
           command: yarn detox-build:android-release
           name: build app for e2e tests
