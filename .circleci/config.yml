@@ -1,118 +1,88 @@
 version: 2.1
 
 orbs:
-  node: circleci/node@5.0.1
   rn: react-native-community/react-native@6.8.1
-  android: circleci/android@2.0.0
 
-jobs:
-  analyse_js:
-    docker:
-      - image: 'cimg/base:stable'
+cjobs:
+  checkout_code:
+    executor:
+      name: rn/linux_js
+      node_version: '14.17.0'
     steps:
       - checkout
-      - node/install:
-          install-yarn: true
-          node-version: '14.17.0'
+      - persist_to_workspace:
+          paths: .
+          root: .
+
+  analyse_js:
+    executor:
+      name: rn/linux_js
+      node_version: '14.17.0'
+    steps:
+      - attach_workspace:
+          at: .
       - run:
           command: export TZ='Asia/Singapore'
           name: Set Time Zone
+          #not working properly
+      - rn/yarn_install
+#      - run:
+#          command: yarn install --frozen-lockfile
+#          name: yarn install
       - run:
-          command: yarn install --frozen-lockfile
-          name: yarn install
-      #      - run:
-      #          command: yarn lint
-      #          name: Run ESLint
+          command: yarn eslint
+          name: Run ESLint
+#      - run:
+#          command: yarn flow
+#          name: Flow
       - run:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
-      - store_artifacts:
-          path: ~/project/coverage
-      - persist_to_workspace:
-          root: .
-          paths:
-            - '*'
-
-  e2e_ios_release:
-    executor:
-      name: rn/macos
-      xcode_version: '13.3.0'
-    #      resource_class: macos.x86.medium.gen2
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: install applesimutils
-          command: |
-            HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
-            HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
-      - rn/ios_simulator_start:
-          device: 'iPhone 13 Pro Max'
-      - rn/pod_install:
-          pod_install_directory: 'ios'
-      - run:
-          command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
-          name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
-      - node/install-yarn
-      - run:
-          command: yarn detox-build:ios-release
-          name: build app for e2e tests
-      - run:
-          command: npx detox clean-framework-cache && npx detox build-framework-cache
-          name: clean detox cache
-      - run:
-          command: yarn detox-test:ios-release
-          name: run e2e tests
-      - store_test_results:
-          path: ~/project/e2e/artifacts/ios-junit.xml
-      - store_artifacts:
-          path: ~/project/e2e/artifacts
-
-  e2e_android_release:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: 2022.01.1
-    steps:
-      - attach_workspace:
-          at: .
-      #   - run:
-      #       name: change default node version
-      #       command: |
-      #         nvm install v15.11.0
-      #         nvm alias default v15.11.0
-      #         echo 'export PATH=/opt/circleci/.nvm/versions/node/v15.11.0/bin:$PATH' >> $BASH_ENV
-      - android/create-avd:
-          avd-name: EMU_API_30
-          system-image: system-images;android-29;default;x86
-          install: true
-      - android/start-emulator:
-          avd-name: EMU_API_30
-          no-window: true
-          restore-gradle-cache-prefix: v1a
-          post-emulator-launch-assemble-command: "pwd"
-      - android/disable-animations
-      - run:
-          command: npm install --global yarn
-          name: install yarn
-      - run:
-          command: yarn detox-build:android-release
-          name: build app for e2e tests
-      - run:
-          command: yarn detox-test:android-release
-          name: run e2e tests
-      - store_test_results:
-          path: ~/project/e2e/artifacts/android-junit.xml
-      - store_artifacts:
-          path: ~/project/e2e/artifacts
 
 workflows:
   test:
     jobs:
-      - analyse_js
-      - e2e_ios_release:
+      - checkout_code
+      - analyse_js:
+          requires:
+            - checkout_code
+#      - rn/android_build:
+#          build_type: debug
+#          name: build_android_debug
+#          project_path: android
+#          requires:
+#            - analyse_js
+      - rn/android_build:
+          build_type: release
+          name: build_android_release
+          project_path: android
           requires:
             - analyse_js
-      - e2e_android_release:
+      - rn/android_test:
+          detox_configuration: android.emu.release
+          requires:
+            - build_android_release
+      - rn/ios_build:
+          build_configuration: Release
+          device: iPhone 11
+          name: build_ios_release
+          node_version: '14'
+          project_path: ios/Example.xcodeproj
           requires:
             - analyse_js
+          scheme: Example
+      - rn/ios_build_and_test:
+          build_configuration: Release
+          detox_configuration: ios.sim.release
+          device: 'iPhone 13 Pro Max'
+          node_version: '14'
+          project_path: ios/Example.xcodeproj
+          requires:
+            - analyse_js
+          scheme: Example
+#      - fastlane_android_release:
+#          requires:
+#            - rn/android_test
+#      - fastlane_ios_release:
+#          requires:
+#            - rn/ios_build_and_test
