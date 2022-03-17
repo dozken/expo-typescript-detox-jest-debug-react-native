@@ -5,45 +5,27 @@ orbs:
   rn: react-native-community/react-native@6.8.1
   android: circleci/android@2.0.0
 
-# - rn/yarn_install
-# fails with Error untarring cache: Error extracting tarball /var/folders/bq/mjrgbpkx5h1g_b22fpv0tlzc0000gn/T/cache376822577 : tmp/yarn/: Cannot extract through symlink tmp/yarn tmp/yarn/v6/: Cannot extract through symlink tmp/yarn/v6 tmp/yarn/v6/.tmp/: Cannot extract through symlink tmp/yarn/v6/.tmp tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel/code-frame/: Cannot extract: exit status 1
-# that is why we use yarn install --frozen-lockfile but that is SLOW! help us to fix this!
-
 jobs:
   analyse_js:
     docker:
       - image: 'cimg/base:stable'
-#    executor:
-#      name: rn/linux_js
-#      node_version: '14.17.0'
     steps:
       - checkout
       - node/install:
           install-yarn: true
           node-version: '14.17.0'
-      # - rn/yarn_install
-      # fails with Error untarring cache: Error extracting tarball /var/folders/bq/mjrgbpkx5h1g_b22fpv0tlzc0000gn/T/cache376822577 : tmp/yarn/: Cannot extract through symlink tmp/yarn tmp/yarn/v6/: Cannot extract through symlink tmp/yarn/v6 tmp/yarn/v6/.tmp/: Cannot extract through symlink tmp/yarn/v6/.tmp tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel/code-frame/: Cannot extract: exit status 1
       - run:
           command: export TZ='Asia/Singapore'
           name: Set Time Zone
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-#      - run:
-#          command: yarn lint
-#          name: Run ESLint
       #      - run:
-      #          command: yarn flow
-      #          name: Flow
+      #          command: yarn lint
+      #          name: Run ESLint
       - run:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
-      - store_test_results:
-          path: ~/project/junit.xml
-      - store_artifacts:
-          path: ~/project/artifact
-      - store_artifacts:
-          path: ~/project/junit.xml
       - store_artifacts:
           path: ~/project/coverage
       - persist_to_workspace:
@@ -54,7 +36,8 @@ jobs:
   e2e_ios_release:
     executor:
       name: rn/macos
-      xcode_version: '13.1.0'
+      xcode_version: '13.3.0'
+      resource_class: macos.x86.metal.gen1
     steps:
       - attach_workspace:
           at: .
@@ -80,7 +63,7 @@ jobs:
           command: yarn detox-test:ios-release
           name: run e2e tests
       - store_test_results:
-          path: ~/project/e2e/artifacts/e2e-junit.xml
+          path: ~/project/e2e/artifacts/ios-junit.xml
       - store_artifacts:
           path: ~/project/e2e/artifacts
 
@@ -92,12 +75,12 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run:
-          name: change default node version
-          command: |
-            nvm install v15.11.0
-            nvm alias default v15.11.0
-            echo 'export PATH=/opt/circleci/.nvm/versions/node/v15.11.0/bin:$PATH' >> $BASH_ENV
+      #   - run:
+      #       name: change default node version
+      #       command: |
+      #         nvm install v15.11.0
+      #         nvm alias default v15.11.0
+      #         echo 'export PATH=/opt/circleci/.nvm/versions/node/v15.11.0/bin:$PATH' >> $BASH_ENV
       - android/create-avd:
           avd-name: EMU_API_30
           system-image: system-images;android-29;default;x86
@@ -108,9 +91,9 @@ jobs:
           restore-gradle-cache-prefix: v1a
           post-emulator-launch-assemble-command: "pwd"
       - android/disable-animations
-      - run:
-          command: npm install --global yarn
-          name: install yarn
+      #   - run:
+      #       command: npm install --global yarn
+      #       name: install yarn
       - run:
           command: yarn detox-build:android-release
           name: build app for e2e tests
@@ -118,9 +101,9 @@ jobs:
           command: yarn detox-test:android-release
           name: run e2e tests
       - store_test_results:
-          path: ~/project/e2e/artifacts/e2e-junit.xml
-            - store_artifacts:
-                path: ~/project/e2e/artifacts
+          path: ~/project/e2e/artifacts/android-junit.xml
+      - store_artifacts:
+          path: ~/project/e2e/artifacts
 
 workflows:
   test:
