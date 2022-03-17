@@ -64,9 +64,9 @@ jobs:
 
   e2e_android_release:
     executor:
-      name: android/android-machine
+      name: android/android-docker
       resource-class: large
-      tag: 2022.01.1-node
+      tag: 2022.03.1-node
     steps:
       - attach_workspace:
           at: .
