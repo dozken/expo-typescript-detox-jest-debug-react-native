@@ -13,7 +13,6 @@ jobs:
     executor:
       name: rn/linux_js
       node_version: '14.17.0'
-    working_directory: /repository
     steps:
       - checkout
       # - rn/yarn_install
@@ -34,11 +33,11 @@ jobs:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
       - store_artifacts:
-          path: /repository/artifact
+          path: ~/project/artifact
       - store_artifacts:
-          path: /repository/test-report.xml
+          path: test-report.xml
       - store_artifacts:
-          path: /repository/coverage
+          path: ~/project/coverage
       - persist_to_workspace:
           root: .
           paths:
@@ -73,7 +72,7 @@ jobs:
           command: yarn detox-test:ios-release
           name: run e2e tests
       - store_artifacts:
-          path: /repository/e2e/artifacts
+          path: e2e/artifacts
 
   e2e_android_release:
     executor:
@@ -109,7 +108,7 @@ jobs:
           command: yarn detox-test:android-release
           name: run e2e tests
       - store_artifacts:
-          path: /repository/e2e/artifacts
+          path: ~/project/e2e/artifacts
 
 workflows:
   test:
