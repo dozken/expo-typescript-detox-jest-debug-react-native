@@ -119,8 +119,8 @@ jobs:
           name: run e2e tests
       - store_test_results:
           path: ~/project/e2e/artifacts/e2e-junit.xml
-            - store_artifacts:
-                path: ~/project/e2e/artifacts
+      - store_artifacts:
+          path: ~/project/e2e/artifacts
 
 workflows:
   test:
