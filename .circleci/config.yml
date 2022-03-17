@@ -82,6 +82,7 @@ workflows:
           device: 'iPhone 13 Pro Max'
           node_version: '14'
           project_path: ios/myexpo.xcworkspace
+          project_tyoe: workspace
           requires:
             - analyse_js
 #      - fastlane_android_release:
