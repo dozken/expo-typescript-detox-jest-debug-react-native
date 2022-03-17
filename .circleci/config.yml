@@ -140,10 +140,10 @@ workflows:
     jobs:
       - analyse_js
 # this works good, commenting for now
-#      - e2e_release_ios:
+#      - e2e_ios_release:
 #          requires:
 #            - analyse_js
-      - e2e_release_android:
+      - e2e_android_release:
           requires:
             - analyse_js
 #      - publish:
