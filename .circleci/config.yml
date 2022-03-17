@@ -43,7 +43,7 @@ jobs:
           paths:
             - '*'
 
-  e2e_release_ios:
+  e2e_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.1.0'
@@ -71,12 +71,15 @@ jobs:
           command: yarn detox-build:ios-release
           name: build app for e2e tests
       - run:
+          command: npx detox clean-framework-cache && npx detox build-framework-cache
+          name: clean detox cache
+      - run:
           command: yarn detox-test:ios-release
           name: run e2e tests
       - store_artifacts:
-          path: ./e2e/artifacts
+          path: e2e/artifacts
 
-  e2e_release_android:
+  e2e_android_release:
     executor:
       name: android/android-machine
       resource-class: large
@@ -136,9 +139,10 @@ workflows:
   test:
     jobs:
       - analyse_js
-      - e2e_release_ios:
-          requires:
-            - analyse_js
+# this works good, commenting for now
+#      - e2e_release_ios:
+#          requires:
+#            - analyse_js
       - e2e_release_android:
           requires:
             - analyse_js
