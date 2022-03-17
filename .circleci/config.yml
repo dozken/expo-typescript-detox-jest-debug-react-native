@@ -11,19 +11,13 @@ jobs:
       - image: cimg/node:17.7.1
     steps:
       - checkout
-#      - node/install:
-#          install-yarn: true
-#          node-version: '14'
       - run:
           command: export TZ='Asia/Singapore'
           name: Set Time Zone
       - rn/yarn_install
-#      - run:
-#          command: yarn install --frozen-lockfile
-#          name: yarn install
-#      - run:
-#          command: yarn lint
-#          name: Run ESLint
+      - run:
+          command: echo "yarn lint"
+          name: Run ESLint
       - run:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
@@ -72,16 +66,10 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
-      tag: 2022.01.1
+      tag: 2022.03.1-node
     steps:
       - attach_workspace:
           at: .
-      #   - run:
-      #       name: change default node version
-      #       command: |
-      #         nvm install v15.11.0
-      #         nvm alias default v15.11.0
-      #         echo 'export PATH=/opt/circleci/.nvm/versions/node/v15.11.0/bin:$PATH' >> $BASH_ENV
       - android/create-avd:
           avd-name: EMU_API_30
           system-image: system-images;android-29;default;x86
