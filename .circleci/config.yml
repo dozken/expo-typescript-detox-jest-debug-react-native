@@ -32,7 +32,7 @@ jobs:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-#      resource_class: macos.x86.medium.gen2
+    #      resource_class: macos.x86.medium.gen2
     steps:
       - attach_workspace:
           at: .
@@ -44,7 +44,7 @@ jobs:
       - rn/ios_simulator_start:
           device: 'iPhone 13 Pro Max'
       - rn/pod_install #:
-          #pod_install_directory: 'ios'
+      #pod_install_directory: 'ios'
       - run:
           command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
           name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
@@ -62,11 +62,27 @@ jobs:
       - store_artifacts:
           path: ~/project/e2e/artifacts
 
-  e2e_android_release:
+  build_android_release:
     executor:
       name: android/android-docker
       resource-class: large
-      tag: 2022.03.1-node
+      tag: 2022.03.1
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          command: npm run detox-build:android-release
+          name: build app for e2e tests
+      - persist_to_workspace:
+          root: .
+          paths:
+            - '*'
+
+  test_android_release:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: 202102-01
     steps:
       - attach_workspace:
           at: .
@@ -80,9 +96,6 @@ jobs:
           restore-gradle-cache-prefix: v1a
           post-emulator-launch-assemble-command: "pwd"
       - android/disable-animations
-      - run:
-          command: npm run detox-build:android-release
-          name: build app for e2e tests
       - run:
           command: npm run detox-test:android-release
           name: run e2e tests
@@ -98,6 +111,9 @@ workflows:
       - e2e_ios_release:
           requires:
             - analyse_js
-      - e2e_android_release:
+      - build_android_release:
           requires:
             - analyse_js
+      - test_android_release:
+          requires:
+            - build_android_release
