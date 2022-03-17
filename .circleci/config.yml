@@ -17,7 +17,7 @@ jobs:
       - run:
           command: export TZ='Asia/Singapore'
           name: Set Time Zone
-      -rn/yarn_install
+      - rn/yarn_install
 #      - run:
 #          command: yarn install --frozen-lockfile
 #          name: yarn install
