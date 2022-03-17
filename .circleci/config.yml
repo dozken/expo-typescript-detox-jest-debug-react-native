@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   rn: react-native-community/react-native@6.8.1
 
-cjobs:
+jobs:
   checkout_code:
     executor:
       name: rn/linux_js
