@@ -33,11 +33,11 @@ jobs:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
       - store_test_results:
-          path: ~/project/test-report.xml
+          path: ~/project/junit.xml
       - store_artifacts:
           path: ~/project/artifact
       - store_artifacts:
-          path: ~/project/test-report.xml
+          path: ~/project/junit.xml
       - store_artifacts:
           path: ~/project/coverage
       - persist_to_workspace:
