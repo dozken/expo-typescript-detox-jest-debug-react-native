@@ -13,6 +13,7 @@ jobs:
     executor:
       name: rn/linux_js
       node_version: '14.17.0'
+    working_directory: /repository
     steps:
       - checkout
       # - rn/yarn_install
@@ -33,11 +34,11 @@ jobs:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
       - store_artifacts:
-          path: artifact
+          path: /repository/artifact
       - store_artifacts:
-          path: test-report.xml
+          path: /repository/test-report.xml
       - store_artifacts:
-          path: coverage
+          path: /repository/coverage
       - persist_to_workspace:
           root: .
           paths:
@@ -50,7 +51,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      #      - checkout
       - run:
           name: install applesimutils
           command: |
@@ -58,10 +58,6 @@ jobs:
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
       - rn/ios_simulator_start:
           device: 'iPhone 13 Pro Max'
-      # - rn/yarn_install
-      #      - run:
-      #          command: yarn install --frozen-lockfile
-      #          name: yarn install
       - rn/pod_install:
           pod_install_directory: 'ios'
       - run:
@@ -77,7 +73,7 @@ jobs:
           command: yarn detox-test:ios-release
           name: run e2e tests
       - store_artifacts:
-          path: e2e/artifacts
+          path: /repository/e2e/artifacts
 
   e2e_android_release:
     executor:
@@ -87,7 +83,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      #      - checkout
       - run:
           name: change default node version
           command: |
@@ -107,9 +102,6 @@ jobs:
       - run:
           command: npm install --global yarn
           name: install yarn
-      #      - run:
-      #          command: yarn install --frozen-lockfile
-      #          name: yarn install
       - run:
           command: yarn detox-build:android-release
           name: build app for e2e tests
@@ -117,23 +109,7 @@ jobs:
           command: yarn detox-test:android-release
           name: run e2e tests
       - store_artifacts:
-          path: ./e2e/artifacts
-
-#  publish:
-#    executor:
-#      name: rn/linux_js
-#      node_version: '14.17.0'
-#    steps:
-#      - checkout
-#      # - rn/yarn_install
-#      # fails with Error untarring cache: Error extracting tarball /var/folders/bq/mjrgbpkx5h1g_b22fpv0tlzc0000gn/T/cache376822577 : tmp/yarn/: Cannot extract through symlink tmp/yarn tmp/yarn/v6/: Cannot extract through symlink tmp/yarn/v6 tmp/yarn/v6/.tmp/: Cannot extract through symlink tmp/yarn/v6/.tmp tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel/: Cannot extract through symlink tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel tmp/yarn/v6/npm-@babel-code-frame-7.8.3-33e25903d7481181534e12ec0a25f16b6fcf419e-integrity/node_modules/@babel/code-frame/: Cannot extract: exit status 1
-#      - run:
-#          command: yarn install --frozen-lockfile
-#          name: yarn install
-#      - run:
-#          command: npx semantic-release
-#          name: Publish to NPM
-
+          path: /repository/e2e/artifacts
 
 workflows:
   test:
@@ -145,10 +121,3 @@ workflows:
       - e2e_android_release:
           requires:
             - analyse_js
-#      - publish:
-#          requires:
-#            - e2e_release_android
-#            - e2e_release_ios
-#          filters:
-#            branches:
-#              only: master
