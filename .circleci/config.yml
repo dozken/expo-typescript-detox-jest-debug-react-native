@@ -17,7 +17,7 @@ jobs:
   analyse_js:
     executor:
       name: rn/linux_js
-      node_version: '14 '
+      node_version: '14'
     steps:
       - attach_workspace:
           at: .
