@@ -8,21 +8,22 @@ orbs:
 jobs:
   analyse_js:
     docker:
-      - image: 'cimg/base:stable'
+      - image: cimg/node:17.7.1
     steps:
       - checkout
-      - node/install:
-          install-yarn: true
-          node-version: '14.17.0'
+#      - node/install:
+#          install-yarn: true
+#          node-version: '14'
       - run:
           command: export TZ='Asia/Singapore'
           name: Set Time Zone
-      - run:
-          command: yarn install --frozen-lockfile
-          name: yarn install
-      #      - run:
-      #          command: yarn lint
-      #          name: Run ESLint
+      -rn/yarn_install
+#      - run:
+#          command: yarn install --frozen-lockfile
+#          name: yarn install
+#      - run:
+#          command: yarn lint
+#          name: Run ESLint
       - run:
           command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
           name: Jest
@@ -37,7 +38,7 @@ jobs:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-    #      resource_class: macos.x86.medium.gen2
+#      resource_class: macos.x86.medium.gen2
     steps:
       - attach_workspace:
           at: .
@@ -48,20 +49,19 @@ jobs:
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
       - rn/ios_simulator_start:
           device: 'iPhone 13 Pro Max'
-      - rn/pod_install:
-          pod_install_directory: 'ios'
+      - rn/pod_install #:
+          #pod_install_directory: 'ios'
       - run:
           command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
           name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
-      - node/install-yarn
       - run:
-          command: yarn detox-build:ios-release
+          command: npm run detox-build:ios-release
           name: build app for e2e tests
       - run:
           command: npx detox clean-framework-cache && npx detox build-framework-cache
           name: clean detox cache
       - run:
-          command: yarn detox-test:ios-release
+          command: npm run detox-test:ios-release
           name: run e2e tests
       - store_test_results:
           path: ~/project/e2e/artifacts/ios-junit.xml
@@ -93,13 +93,10 @@ jobs:
           post-emulator-launch-assemble-command: "pwd"
       - android/disable-animations
       - run:
-          command: npm install --global yarn
-          name: install yarn
-      - run:
-          command: yarn detox-build:android-release
+          command: npm run detox-build:android-release
           name: build app for e2e tests
       - run:
-          command: yarn detox-test:android-release
+          command: npm run detox-test:android-release
           name: run e2e tests
       - store_test_results:
           path: ~/project/e2e/artifacts/android-junit.xml
