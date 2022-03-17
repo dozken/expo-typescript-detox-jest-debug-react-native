@@ -59,7 +59,7 @@ jobs:
           command: npm run detox-build:ios-release
           name: build app for e2e tests
       - run:
-          command: detox clean-framework-cache && detox build-framework-cache
+          command: npx detox clean-framework-cache && npx detox build-framework-cache
           name: clean detox cache
       - run:
           command: npm run detox-test:ios-release
