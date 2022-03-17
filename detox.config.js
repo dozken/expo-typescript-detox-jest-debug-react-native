@@ -8,7 +8,7 @@ module.exports = {
         },
     },
     artifacts: {
-        rootDir: 'e2e/artefacts',
+        rootDir: 'e2e/artifacts',
         plugins: {
             uiHierarchy: 'disabled',
         },
