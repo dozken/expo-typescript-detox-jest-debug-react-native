@@ -64,9 +64,13 @@ jobs:
 
   build_android_release:
     executor:
-      name: android/android-docker
+      name: android/android-machine
       resource-class: large
-      tag: 2022.03.1-node
+      tag: 2022.03.1
+#    executor:
+#      name: android/android-docker
+#      resource-class: large
+#      tag: 2022.03.1-node
     steps:
       - attach_workspace:
           at: .
