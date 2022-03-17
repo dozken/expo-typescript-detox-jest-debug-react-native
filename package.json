@@ -21,8 +21,10 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "reporters": [ "default", "jest-junit" ]
-
+    "reporters": [
+      "default",
+      "jest-junit"
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^12.0.0",
