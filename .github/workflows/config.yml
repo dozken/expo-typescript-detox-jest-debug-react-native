@@ -19,8 +19,8 @@ jobs:
       - run: npx pod-install
 
         # run E2E tests
-      - run: yarn build:ios-release
-      - run: yarn test:ios-release
+      - run: yarn detox-build:ios-release
+      - run: yarn detox-test:ios-release
 
   android_build_and_test:
     runs-on: macos-latest
@@ -36,7 +36,7 @@ jobs:
           echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-30;default;x86_64"
           echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -f -n EMULATOR -k "system-images;android-30;default;x86_64"
 
-      - run: yarn build:android-release
+      - run: yarn detox-build:android-release
 
       - name: Android Emulator
         timeout-minutes: 10
@@ -48,5 +48,5 @@ jobs:
           $ANDROID_HOME/platform-tools/adb devices
           echo "EMULATOR started"
 
-      - run: yarn test:android-release
+      - run: yarn detox-test:android-release
 
