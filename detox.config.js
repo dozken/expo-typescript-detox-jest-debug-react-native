@@ -24,6 +24,8 @@ module.exports = {
                 'ios/build/Build/Products/Release-iphonesimulator/myexpo.app',
             build:
                 'export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace ios/myexpo.xcworkspace -UseNewBuildSystem=YES -scheme myexpo -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
+             // "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -project ios/myexpo.xcodeproj -destination 'platform=iOS Simulator,name=iPhone 13 Pro Max' -scheme myexpo -parallelizeTargets -configuration Release -derivedDataPath ios/build  -UseModernBuildSystem=YES | xcpretty -k
+
         },
         'ios.debug': {
             type: 'ios.app',
