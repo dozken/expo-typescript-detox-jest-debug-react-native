@@ -46,6 +46,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - rn/pod_install
       - run:
           command: npm run detox-build:ios-release
           name: build app for e2e tests
@@ -69,7 +70,6 @@ jobs:
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
       - rn/ios_simulator_start:
           device: 'iPhone 13 Pro Max'
-      - rn/pod_install
 #      - run:
 #          command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
 #          name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
