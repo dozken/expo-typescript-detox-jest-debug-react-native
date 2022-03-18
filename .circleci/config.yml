@@ -6,7 +6,7 @@ orbs:
   android: circleci/android@2.0.0
 
 jobs:
-  analyse_js:
+  build_eslint_jest:
     docker:
       - image: cimg/node:17.7.1
     steps:
@@ -19,7 +19,7 @@ jobs:
           command: echo "yarn lint"
           name: Run ESLint
       - run:
-          command: NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false
+          command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false"
           name: Jest
       - store_artifacts:
           path: ~/project/coverage
@@ -28,7 +28,33 @@ jobs:
           paths:
             - '*'
 
-  e2e_ios_release:
+  static_code_analysis:
+    docker:
+      - image: cimg/node:17.7.1
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          command: echo "SonarQube"
+          name: SonarQube
+
+  build_ios_release:
+    executor:
+      name: rn/macos
+      xcode_version: '13.3.0'
+    #      resource_class: macos.x86.medium.gen2
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          command: npm run detox-build:ios-release
+          name: build app for e2e tests
+      - persist_to_workspace:
+          root: .
+          paths:
+            - '*'
+
+  test_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
@@ -43,14 +69,10 @@ jobs:
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
       - rn/ios_simulator_start:
           device: 'iPhone 13 Pro Max'
-      - rn/pod_install #:
-      #pod_install_directory: 'ios'
-      - run:
-          command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
-          name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
-      - run:
-          command: npm run detox-build:ios-release
-          name: build app for e2e tests
+      - rn/pod_install
+#      - run:
+#          command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
+#          name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
       - run:
           command: npx detox clean-framework-cache && npx detox build-framework-cache
           name: clean detox cache
@@ -67,10 +89,6 @@ jobs:
       name: android/android-machine
       resource-class: large
       tag: 2022.03.1
-#    executor:
-#      name: android/android-docker
-#      resource-class: large
-#      tag: 2022.03.1-node
     steps:
       - attach_workspace:
           at: .
@@ -111,13 +129,21 @@ jobs:
 workflows:
   test:
     jobs:
-      - analyse_js
-      - e2e_ios_release:
+      - build_eslint_jest
+      - static_code_analysis:
           requires:
-            - analyse_js
+            - build_eslint_jest
+
+      - build_ios_release:
+          requires:
+            - static_code_analysis
       - build_android_release:
           requires:
-            - analyse_js
+            - static_code_analysis
+
+      - test_ios_release:
+          requires:
+            - build_ios_release
       - test_android_release:
           requires:
             - build_android_release
