@@ -42,7 +42,6 @@ jobs:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-    #      resource_class: macos.x86.medium.gen2
     steps:
       - attach_workspace:
           at: .
@@ -59,7 +58,6 @@ jobs:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-    #      resource_class: macos.x86.medium.gen2
     steps:
       - attach_workspace:
           at: .
@@ -70,9 +68,6 @@ jobs:
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
       - rn/ios_simulator_start:
           device: 'iPhone 13 Pro Max'
-#      - run:
-#          command: curl https://raw.githubusercontent.com/facebook/react-native/6334ac35ac3cbc2c84b2d46d46ec118bf9bf714d/scripts/find-node.sh > node_modules/react-native/scripts/find-node.sh
-#          name: fix issue with nvm # will be fixed in RN 67 (https://github.com/react-native-community/upgrade-support/issues/138)
       - run:
           command: npx detox clean-framework-cache && npx detox build-framework-cache
           name: clean detox cache
@@ -93,7 +88,7 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          command: cd android ; ./gradlew cleanBuildCache ; cd -
+          command: cd android ; ./gradlew clean ; cd -
           name: Clean gradle cache
       - run:
           command: npm run detox-build:android-release
