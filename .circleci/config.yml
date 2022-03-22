@@ -39,6 +39,7 @@ jobs:
       name: rn/macos
       xcode_version: '13.3.0'
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - rn/pod_install
