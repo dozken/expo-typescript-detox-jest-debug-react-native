@@ -121,17 +121,17 @@ jobs:
 workflows:
   test:
     jobs:
-      - install-and-test:
-#      - static_code_analysis:
-#          requires:
-#            - build_eslint_jest
+      - install-and-test
+      #      - static_code_analysis:
+      #          requires:
+      #            - build_eslint_jest
 
       - build_ios_release:
           requires:
-            - install-and-test:
-#      - build_android_release:
-#          requires:
-#            - static_code_analysis
+            - install-and-test
+      #      - build_android_release:
+      #          requires:
+      #            - static_code_analysis
 
       - test_ios_release:
           requires:
