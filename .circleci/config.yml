@@ -11,7 +11,6 @@ jobs:
       - image: cimg/node:14.19.1
         environment:
           TZ: "Asia/Singapore"
-    working_directory: ~/circleci-build
     steps:
       - checkout
       - rn/yarn_install
@@ -31,18 +30,17 @@ jobs:
       - store_artifacts:
           path: ~/project/artifact
       - persist_to_workspace:
-          root: /home/circleci
+          root: .
           paths:
-            - circleci-build/node_modules
+            - node_modules
 
   build_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-    working_directory: ~/circleci-build
     steps:
       - attach_workspace:
-          at: /home/circleci
+          at: .
       - rn/pod_install
       - run:
           command: npm run detox-build:ios-release
@@ -50,7 +48,7 @@ jobs:
       - persist_to_workspace:
           root: /home/circleci
           paths:
-            - circleci-build/ios
+            - ios
 
   test_ios_release:
     executor:
@@ -59,7 +57,7 @@ jobs:
     working_directory: ~/circleci-build
     steps:
       - attach_workspace:
-          at: /home/circleci
+          at: .
       - run:
           name: Install AppleSimulatorUtils
           command: |
