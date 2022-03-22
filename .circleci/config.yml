@@ -7,18 +7,17 @@ orbs:
 
 jobs:
   install-and-test:
-    description: "Install and test"
     docker:
       - image: cimg/node:14.19.1
+        environment:
+          TZ: "Asia/Singapore"
+    working_directory: ~/circleci-build
     steps:
       - checkout
       - rn/yarn_install
       - run:
           command: echo "yarn lint"
           name: Run linter
-      - run:
-          command: export TZ='Asia/Singapore'
-          name: Set Time Zone
       - run:
           command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false"
           name: Jest
@@ -31,35 +30,38 @@ jobs:
           path: ~/project/test-report.xml
       - store_artifacts:
           path: ~/project/artifact
+      - persist_to_workspace:
+          root: /home/circleci
+          paths:
+            - circleci-build/node_modules
 
   build_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
+    working_directory: ~/circleci-build
     steps:
-      - checkout
-      - rn/yarn_install:
-          cache: false
+      - attach_workspace:
+          at: /home/circleci
       - rn/pod_install
       - run:
           command: npm run detox-build:ios-release
-          name: build app for e2e tests
+          name: Build iOS release for e2e tests
       - persist_to_workspace:
-          root: .
+          root: /home/circleci
           paths:
-            - 'ios/build/Build/Products/Release-iphonesimulator/myexpo.app'
+            - circleci-build/ios
 
   test_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
+    working_directory: ~/circleci-build
     steps:
-      - checkout
-      - rn/yarn_install
       - attach_workspace:
-          at: .
+          at: /home/circleci
       - run:
-          name: install applesimutils
+          name: Install AppleSimulatorUtils
           command: |
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
@@ -67,10 +69,10 @@ jobs:
           device: 'iPhone 13 Pro Max'
       - run:
           command: npx detox clean-framework-cache && npx detox build-framework-cache
-          name: clean detox cache
+          name: Clean Detox Cache
       - run:
-          command: EST_JUNIT_OUTPUT_DIR="./e2e/artifacts" JEST_JUNIT_OUTPUT_NAME="ios-junit.xml" npx detox test --configuration ios.sim.release  --loglevel verbose --record-timeline all --take-screenshots all --record-logs all --record-videos failing --cleanup
-          name: run e2e tests
+          command: yarn detox-test:ios-release
+          name: Run E2E Tests
       - store_test_results:
           path: ~/project/e2e/artifacts/ios-junit.xml
       - store_artifacts:
@@ -125,20 +127,18 @@ workflows:
   "Install & Test":
     jobs:
       - install-and-test
-      #      - static_code_analysis:
-      #          requires:
-      #            - build_eslint_jest
 
       - build_ios_release:
           requires:
             - install-and-test
-      #      - build_android_release:
-      #          requires:
-      #            - static_code_analysis
 
       - test_ios_release:
           requires:
             - build_ios_release
+
+      #      - build_android_release:
+      #          requires:
+      #            - static_code_analysis
 #      - test_android_release:
 #          requires:
 #            - build_android_release
