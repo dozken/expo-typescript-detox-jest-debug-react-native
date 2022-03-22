@@ -6,45 +6,39 @@ orbs:
   android: circleci/android@2.0.0
 
 jobs:
-  build_eslint_jest:
+  install-and-test:
+    description: "Install and test"
     docker:
       - image: cimg/node:17.7.1
     steps:
       - checkout
-      - run:
-          command: export TZ='Asia/Singapore'
-          name: Set Time Zone
       - rn/yarn_install
       - run:
           command: echo "yarn lint"
-          name: Run ESLint
+          name: Run linter
+      - run:
+          command: export TZ='Asia/Singapore'
+          name: Set Time Zone
       - run:
           command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false"
           name: Jest
+      - run:
+          command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn run sonar-scanner -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
+          name: Static code analysis
       - store_artifacts:
           path: ~/project/coverage
-      - persist_to_workspace:
-          root: .
-          paths:
-            - '*'
-
-  static_code_analysis:
-    docker:
-      - image: cimg/node:17.7.1
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          command: echo "SonarQube"
-          name: SonarQube
+      - store_artifacts:
+          path: ~/project/test-report.xml
+      - store_artifacts:
+          path: ~/project/artifact
 
   build_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
     steps:
-      - attach_workspace:
-          at: .
+      - checkout
+      - rn/yarn_install
       - rn/pod_install
       - run:
           command: npm run detox-build:ios-release
@@ -52,7 +46,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - '*'
+            - 'ios/build/Build/Products/Release-iphonesimulator/myexpo.app'
 
   test_ios_release:
     executor:
@@ -127,21 +121,21 @@ jobs:
 workflows:
   test:
     jobs:
-      - build_eslint_jest
-      - static_code_analysis:
-          requires:
-            - build_eslint_jest
+      - install-and-test:
+#      - static_code_analysis:
+#          requires:
+#            - build_eslint_jest
 
       - build_ios_release:
           requires:
-            - static_code_analysis
-      - build_android_release:
-          requires:
-            - static_code_analysis
+            - install-and-test:
+#      - build_android_release:
+#          requires:
+#            - static_code_analysis
 
       - test_ios_release:
           requires:
             - build_ios_release
-      - test_android_release:
-          requires:
-            - build_android_release
+#      - test_android_release:
+#          requires:
+#            - build_android_release
