@@ -55,7 +55,6 @@ jobs:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
-    working_directory: ~/circleci-build
     steps:
       - attach_workspace:
           at: .
