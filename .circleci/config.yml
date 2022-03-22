@@ -103,6 +103,7 @@ jobs:
       resource-class: large
       tag: 202102-01
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - android/create-avd:
