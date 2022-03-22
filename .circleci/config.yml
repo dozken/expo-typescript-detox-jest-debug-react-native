@@ -86,12 +86,16 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run:
-          command: cd android ; ./gradlew clean ; cd -
-          name: Clean gradle cache
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+#      - run:
+#          command: cd android ; ./gradlew clean ; cd -
+#          name: Clean gradle cache
       - run:
           command: npm run detox-build:android-release
           name: Build Android release for e2e tests
+      - android/save-gradle-cache
+      - android/save-build-cache
       - persist_to_workspace:
           root: .
           paths:
@@ -118,7 +122,7 @@ jobs:
       - android/disable-animations
       - run:
           command: npm run detox-test:android-release
-          name: run e2e tests
+          name: Run E2E Tests
       - store_test_results:
           path: ~/project/e2e/artifacts/android-junit.xml
       - store_artifacts:
