@@ -10,14 +10,13 @@
     "test": "jest --watchAll",
     "test:coverage": "jest --coverage",
     "detox-build:ios-debug": "detox build --configuration ios.sim.debug",
-    "detox-build:ios-release": "detox build --configuration ios.sim.release",
     "detox-build:android-debug": "detox build --configuration android.emu.debug",
+    "detox-build:ios-release": "detox build --configuration ios.sim.release",
     "detox-build:android-release": "detox build --configuration android.emu.release",
     "detox-test:ios-debug": "detox test --configuration ios.sim.debug",
-    "detox-test:ios-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"ios-junit.xml\" detox test --configuration ios.sim.release  --loglevel verbose --record-timeline all --take-screenshots all --record-logs all --record-videos failing --cleanup",
     "detox-test:android-debug": "detox test --configuration android.emu.debug",
-    "detox-test:android-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"android-junit.xml\" detox test --configuration android.emu.release --loglevel verbose --record-timeline all --take-screenshots all --record-logs all --record-videos failing --cleanup",
-    "postinstall": "npx pod-install"
+    "detox-test:ios-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"ios-junit.xml\" detox test --configuration ios.sim.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup",
+    "detox-test:android-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"android-junit.xml\" detox test --configuration android.emu.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup"
   },
   "jest": {
     "preset": "jest-expo",

@@ -7,18 +7,16 @@ orbs:
 
 jobs:
   install-and-test:
-    description: "Install and test"
     docker:
-      - image: cimg/node:17.7.1
+      - image: cimg/node:16.14.2
+        environment:
+          TZ: "Asia/Singapore"
     steps:
       - checkout
       - rn/yarn_install
       - run:
           command: echo "yarn lint"
           name: Run linter
-      - run:
-          command: export TZ='Asia/Singapore'
-          name: Set Time Zone
       - run:
           command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false"
           name: Jest
@@ -31,6 +29,10 @@ jobs:
           path: ~/project/test-report.xml
       - store_artifacts:
           path: ~/project/artifact
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
 
   build_ios_release:
     executor:
@@ -38,25 +40,27 @@ jobs:
       xcode_version: '13.3.0'
     steps:
       - checkout
-      - rn/yarn_install
+      - attach_workspace:
+          at: .
       - rn/pod_install
       - run:
           command: npm run detox-build:ios-release
-          name: build app for e2e tests
+          name: Build iOS release for e2e tests
       - persist_to_workspace:
           root: .
           paths:
-            - 'ios/build/Build/Products/Release-iphonesimulator/myexpo.app'
+            - ios
 
   test_ios_release:
     executor:
       name: rn/macos
       xcode_version: '13.3.0'
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run:
-          name: install applesimutils
+          name: Install AppleSimulatorUtils
           command: |
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
             HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
@@ -64,10 +68,10 @@ jobs:
           device: 'iPhone 13 Pro Max'
       - run:
           command: npx detox clean-framework-cache && npx detox build-framework-cache
-          name: clean detox cache
+          name: Clean Detox Cache
       - run:
-          command: npm run detox-test:ios-release
-          name: run e2e tests
+          command: yarn detox-test:ios-release
+          name: Run E2E Tests
       - store_test_results:
           path: ~/project/e2e/artifacts/ios-junit.xml
       - store_artifacts:
@@ -79,18 +83,23 @@ jobs:
       resource-class: large
       tag: 2022.03.1
     steps:
+      - checkout
       - attach_workspace:
           at: .
-      - run:
-          command: cd android ; ./gradlew clean ; cd -
-          name: Clean gradle cache
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+#      - run:
+#          command: cd android ; ./gradlew clean ; cd -
+#          name: Clean gradle cache
       - run:
           command: npm run detox-build:android-release
-          name: build app for e2e tests
+          name: Build Android release for e2e tests
+      - android/save-gradle-cache
+      - android/save-build-cache
       - persist_to_workspace:
           root: .
           paths:
-            - '*'
+            - android
 
   test_android_release:
     executor:
@@ -98,6 +107,7 @@ jobs:
       resource-class: large
       tag: 202102-01
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - android/create-avd:
@@ -112,30 +122,27 @@ jobs:
       - android/disable-animations
       - run:
           command: npm run detox-test:android-release
-          name: run e2e tests
+          name: Run E2E Tests
       - store_test_results:
           path: ~/project/e2e/artifacts/android-junit.xml
       - store_artifacts:
           path: ~/project/e2e/artifacts
 
 workflows:
-  test:
+  "Install & Test":
     jobs:
-      - install-and-test:
-#      - static_code_analysis:
-#          requires:
-#            - build_eslint_jest
+      - install-and-test
 
-      - build_ios_release:
-          requires:
-            - install-and-test:
-#      - build_android_release:
+#      - build_ios_release:
 #          requires:
-#            - static_code_analysis
+#            - install-and-test
+#      - test_ios_release:
+#          requires:
+#            - build_ios_release
 
-      - test_ios_release:
+      - build_android_release:
           requires:
-            - build_ios_release
-#      - test_android_release:
-#          requires:
-#            - build_android_release
+            - install-and-test
+      - test_android_release:
+          requires:
+            - build_android_release
