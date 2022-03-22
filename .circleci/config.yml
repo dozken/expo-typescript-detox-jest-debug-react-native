@@ -55,6 +55,7 @@ jobs:
       xcode_version: '13.3.0'
     steps:
       - checkout
+      - rn/yarn_install
       - attach_workspace:
           at: .
       - run:
