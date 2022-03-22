@@ -6,7 +6,7 @@ orbs:
   android: circleci/android@2.0.0
 
 jobs:
-  "Install and Test":
+  install-and-test:
     docker:
       - image: cimg/node:16.14.2
         environment:
@@ -129,20 +129,20 @@ jobs:
           path: ~/project/e2e/artifacts
 
 workflows:
-  "Install & Test":
+  "Pipeline ${CIRCLE_BRANCH} ${CIRCLE_BUILD_NUM}":
     jobs:
-      - "Install and Test"
+      - install-and-test
 
-      # - build_ios_release:
-      #     requires:
-      #       - install-and-test
-      # - test_ios_release:
-      #     requires:
+        # - build_ios_release:
+        #     requires:
+        #       - install-and-test
+        # - test_ios_release:
+        #     requires:
       #       - build_ios_release
 
-      # - build_android_release:
-      #     requires:
-      #       - install-and-test
-      # - test_android_release:
-      #     requires:
-      #       - build_android_release
+      - build_android_release:
+          requires:
+            - install-and-test
+      - test_android_release:
+          requires:
+            - build_android_release

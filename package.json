@@ -16,7 +16,7 @@
     "detox-test:ios-debug": "detox test --configuration ios.sim.debug",
     "detox-test:android-debug": "detox test --configuration android.emu.debug",
     "detox-test:ios-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"ios-junit.xml\" detox test --configuration ios.sim.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup",
-    "detox-test:android-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"android-junit.xml\" detox test --configuration android.emu.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup"
+    "detox-test:android-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"android-junit.xml\" detox test --configuration android.emu.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup --headless"
   },
   "jest": {
     "preset": "jest-expo",
