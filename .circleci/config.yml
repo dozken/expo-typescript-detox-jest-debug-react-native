@@ -129,16 +129,16 @@ jobs:
           path: ~/project/e2e/artifacts
 
 workflows:
-  "Pipeline ${CIRCLE_BRANCH} ${CIRCLE_BUILD_NUM}":
+  "Pipeline":
     jobs:
       - install-and-test
 
-        # - build_ios_release:
-        #     requires:
-        #       - install-and-test
-        # - test_ios_release:
-        #     requires:
-      #       - build_ios_release
+      - build_ios_release:
+          requires:
+            - install-and-test
+      - test_ios_release:
+          requires:
+            - build_ios_release
 
       - build_android_release:
           requires:
