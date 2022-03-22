@@ -119,7 +119,7 @@ jobs:
           path: ~/project/e2e/artifacts
 
 workflows:
-  test:
+  "Install & Test":
     jobs:
       - install-and-test
       #      - static_code_analysis:
