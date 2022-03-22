@@ -9,7 +9,7 @@ jobs:
   install-and-test:
     description: "Install and test"
     docker:
-      - image: cimg/node:17.7.1
+      - image: cimg/node:14.19.1
     steps:
       - checkout
       - rn/yarn_install
@@ -53,6 +53,7 @@ jobs:
       name: rn/macos
       xcode_version: '13.3.0'
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run:
@@ -66,7 +67,7 @@ jobs:
           command: npx detox clean-framework-cache && npx detox build-framework-cache
           name: clean detox cache
       - run:
-          command: npm run detox-test:ios-release
+          command: EST_JUNIT_OUTPUT_DIR="./e2e/artifacts" JEST_JUNIT_OUTPUT_NAME="ios-junit.xml" npx detox test --configuration ios.sim.release  --loglevel verbose --record-timeline all --take-screenshots all --record-logs all --record-videos failing --cleanup
           name: run e2e tests
       - store_test_results:
           path: ~/project/e2e/artifacts/ios-junit.xml
