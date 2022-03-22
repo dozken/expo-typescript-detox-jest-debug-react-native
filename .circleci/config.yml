@@ -6,7 +6,7 @@ orbs:
   android: circleci/android@2.0.0
 
 jobs:
-  install-and-test:
+  "Install and Test":
     docker:
       - image: cimg/node:16.14.2
         environment:
@@ -88,9 +88,9 @@ jobs:
           at: .
       - android/restore-gradle-cache
       - android/restore-build-cache
-#      - run:
-#          command: cd android ; ./gradlew clean ; cd -
-#          name: Clean gradle cache
+      #      - run:
+      #          command: cd android ; ./gradlew clean ; cd -
+      #          name: Clean gradle cache
       - run:
           command: npm run detox-build:android-release
           name: Build Android release for e2e tests
@@ -131,18 +131,18 @@ jobs:
 workflows:
   "Install & Test":
     jobs:
-      - install-and-test
+      - "Install and Test"
 
-      - build_ios_release:
-          requires:
-            - install-and-test
-      - test_ios_release:
-          requires:
-            - build_ios_release
+      # - build_ios_release:
+      #     requires:
+      #       - install-and-test
+      # - test_ios_release:
+      #     requires:
+      #       - build_ios_release
 
-      - build_android_release:
-          requires:
-            - install-and-test
-      - test_android_release:
-          requires:
-            - build_android_release
+      # - build_android_release:
+      #     requires:
+      #       - install-and-test
+      # - test_android_release:
+      #     requires:
+      #       - build_android_release
