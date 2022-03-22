@@ -46,6 +46,8 @@ jobs:
       - run:
           command: npm run detox-build:ios-release
           name: Build iOS release for e2e tests
+      - store_artifacts:
+          path: ~/project/ios/build/Build/Products/Debug-iphonesimulator/myexpo.app
       - persist_to_workspace:
           root: .
           paths:
@@ -96,6 +98,8 @@ jobs:
           name: Build Android release for e2e tests
       - android/save-gradle-cache
       - android/save-build-cache
+      - store_artifacts:
+          path: ~/project/android/app/build/outputs/apk/release/app-release.apk
       - persist_to_workspace:
           root: .
           paths:
@@ -136,13 +140,13 @@ workflows:
       - build_ios_release:
           requires:
             - install-and-test
-      - test_ios_release:
-          requires:
-            - build_ios_release
+#      - test_ios_release:
+#          requires:
+#            - build_ios_release
 
       - build_android_release:
           requires:
             - install-and-test
-      - test_android_release:
-          requires:
-            - build_android_release
+#      - test_android_release:
+#          requires:
+#            - build_android_release

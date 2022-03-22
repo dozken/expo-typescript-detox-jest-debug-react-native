@@ -16,7 +16,10 @@
     "detox-test:ios-debug": "detox test --configuration ios.sim.debug",
     "detox-test:android-debug": "detox test --configuration android.emu.debug",
     "detox-test:ios-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"ios-junit.xml\" detox test --configuration ios.sim.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup",
-    "detox-test:android-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"android-junit.xml\" detox test --configuration android.emu.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup --headless"
+    "detox-test:android-release": "JEST_JUNIT_OUTPUT_DIR=\"./e2e/artifacts\" JEST_JUNIT_OUTPUT_NAME=\"android-junit.xml\" detox test --configuration android.emu.release --take-screenshots failing --record-logs failing --record-videos failing --cleanup --headless",
+    "android:bundle": "cd android && ./gradlew app:bundleRelease && cd ..",
+    "android:gen-apks": "bundletool build-apks --bundle=./android/app/build/outputs/bundle/release/app.aab --output=./bundle/myapp.apks --ks=./android/app/android.keystore --ks-key-alias=homehero-release",
+    "android:install-apks": "bundletool install-apks --apks=./bundle/myapp.apks"
   },
   "jest": {
     "preset": "jest-expo",
