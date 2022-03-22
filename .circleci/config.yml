@@ -38,7 +38,8 @@ jobs:
       xcode_version: '13.3.0'
     steps:
       - checkout
-      - rn/yarn_install
+      - rn/yarn_install:
+          cache: false
       - rn/pod_install
       - run:
           command: npm run detox-build:ios-release
@@ -74,50 +75,50 @@ jobs:
       - store_artifacts:
           path: ~/project/e2e/artifacts
 
-  build_android_release:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: 2022.03.1
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          command: cd android ; ./gradlew clean ; cd -
-          name: Clean gradle cache
-      - run:
-          command: npm run detox-build:android-release
-          name: build app for e2e tests
-      - persist_to_workspace:
-          root: .
-          paths:
-            - '*'
-
-  test_android_release:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: 202102-01
-    steps:
-      - attach_workspace:
-          at: .
-      - android/create-avd:
-          avd-name: EMU_API_30
-          system-image: system-images;android-29;default;x86
-          install: true
-      - android/start-emulator:
-          avd-name: EMU_API_30
-          no-window: true
-          restore-gradle-cache-prefix: v1a
-          post-emulator-launch-assemble-command: "pwd"
-      - android/disable-animations
-      - run:
-          command: npm run detox-test:android-release
-          name: run e2e tests
-      - store_test_results:
-          path: ~/project/e2e/artifacts/android-junit.xml
-      - store_artifacts:
-          path: ~/project/e2e/artifacts
+#  build_android_release:
+#    executor:
+#      name: android/android-machine
+#      resource-class: large
+#      tag: 2022.03.1
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run:
+#          command: cd android ; ./gradlew clean ; cd -
+#          name: Clean gradle cache
+#      - run:
+#          command: npm run detox-build:android-release
+#          name: build app for e2e tests
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - '*'
+#
+#  test_android_release:
+#    executor:
+#      name: android/android-machine
+#      resource-class: large
+#      tag: 202102-01
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - android/create-avd:
+#          avd-name: EMU_API_30
+#          system-image: system-images;android-29;default;x86
+#          install: true
+#      - android/start-emulator:
+#          avd-name: EMU_API_30
+#          no-window: true
+#          restore-gradle-cache-prefix: v1a
+#          post-emulator-launch-assemble-command: "pwd"
+#      - android/disable-animations
+#      - run:
+#          command: npm run detox-test:android-release
+#          name: run e2e tests
+#      - store_test_results:
+#          path: ~/project/e2e/artifacts/android-junit.xml
+#      - store_artifacts:
+#          path: ~/project/e2e/artifacts
 
 workflows:
   "Install & Test":
