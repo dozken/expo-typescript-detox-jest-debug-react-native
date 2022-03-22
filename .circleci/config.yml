@@ -137,7 +137,7 @@ workflows:
 
       - build_android_release:
           requires:
-            - static_code_analysis
+            - install-and-test
       - test_android_release:
           requires:
             - build_android_release
