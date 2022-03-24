@@ -4,35 +4,66 @@ orbs:
   node: circleci/node@5.0.1
   rn: react-native-community/react-native@6.8.1
   android: circleci/android@2.0.0
+  mac: circleci/macos@2.1.0
 
 jobs:
-  install-and-test:
+  build:
     docker:
       - image: cimg/node:16.14.2
-        environment:
-          TZ: "Asia/Singapore"
     steps:
       - checkout
       - rn/yarn_install
       - run:
           command: echo "yarn lint"
           name: Run linter
-      - run:
-          command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn test:coverage --watchAll=false"
-          name: Jest
-      - run:
-          command: echo "NODE_OPTIONS=--max_old_space_size=4000 yarn run sonar-scanner -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
-          name: Static code analysis
-      - store_artifacts:
-          path: ~/project/coverage
-      - store_artifacts:
-          path: ~/project/test-report.xml
-      - store_artifacts:
-          path: ~/project/artifact
       - persist_to_workspace:
           root: .
           paths:
             - node_modules
+
+  test:
+    docker:
+      - image: cimg/node:16.14.2
+        environment:
+          TZ: "Asia/Singapore"
+    #    parallelism: 4
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          # uncomment below if parallelism needed
+          #          command: |
+          #            TEST=$(circleci tests glob "./src/**/*.spec.tsx" | circleci tests split --split-by=timings)
+          #            NODE_OPTIONS=--max_old_space_size=4096 JEST_JUNIT_OUTPUT_DIR="./test-results" JEST_JUNIT_OUTPUT_NAME="junit-${CIRCLE_NODE_INDEX}.xml" yarn test:coverage --watchAll=false --maxWorkers=4 $TEST
+          command: echo "jest"
+#          NODE_OPTIONS=--max_old_space_size=4096 JEST_JUNIT_OUTPUT_DIR="./test-results" JEST_JUNIT_OUTPUT_NAME="junit-${CIRCLE_NODE_INDEX}.xml" yarn test:coverage --watchAll=false --maxWorkers=4
+          name: Jest
+      - store_artifacts:
+          path: ~/project/coverage
+      - store_artifacts:
+          path: ~/project/test-report.xml
+      - store_test_results:
+          path: ~/project/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - test-report.xml
+
+  sonar-qube:
+    docker:
+      - image: cimg/node:16.14.2
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          command: echo "sonar qube"
+#          NODE_OPTIONS=--max_old_space_size=4096 yarn run sonar-scanner -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}
+          name: Static code analysis
+      - store_artifacts:
+          path: ~/project/artifact
+
 
   build_ios_release:
     executor:
@@ -46,38 +77,10 @@ jobs:
       - run:
           command: npm run detox-build:ios-release
           name: Build iOS release for e2e tests
-      - store_artifacts:
-          path: ~/project/ios/build/Build/Products/Debug-iphonesimulator/myexpo.app
       - persist_to_workspace:
           root: .
           paths:
             - ios
-
-  test_ios_release:
-    executor:
-      name: rn/macos
-      xcode_version: '13.3.0'
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - run:
-          name: Install AppleSimulatorUtils
-          command: |
-            HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
-            HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
-      - rn/ios_simulator_start:
-          device: 'iPhone 13 Pro Max'
-      - run:
-          command: npx detox clean-framework-cache && npx detox build-framework-cache
-          name: Clean Detox Cache
-      - run:
-          command: yarn detox-test:ios-release
-          name: Run E2E Tests
-      - store_test_results:
-          path: ~/project/e2e/artifacts/ios-junit.xml
-      - store_artifacts:
-          path: ~/project/e2e/artifacts
 
   build_android_release:
     executor:
@@ -90,20 +93,44 @@ jobs:
           at: .
       - android/restore-gradle-cache
       - android/restore-build-cache
-      #      - run:
-      #          command: cd android ; ./gradlew clean ; cd -
-      #          name: Clean gradle cache
       - run:
           command: npm run detox-build:android-release
           name: Build Android release for e2e tests
       - android/save-gradle-cache
       - android/save-build-cache
-      - store_artifacts:
-          path: ~/project/android/app/build/outputs/apk/release/app-release.apk
       - persist_to_workspace:
           root: .
           paths:
             - android
+
+
+  test_ios_release:
+    macos:
+      xcode: 13.3.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install AppleSimulatorUtils
+          command: |
+            HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
+            HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
+      - mac/preboot-simulator:
+          device: 'iPhone 13 Pro Max'
+          version: '15.2'
+#      - rn/ios_simulator_start:
+#          device: 'iPhone 13 Pro Max'
+      - run:
+          command: npx detox clean-framework-cache && npx detox build-framework-cache
+          name: Clean Detox Cache
+      - run:
+          command: yarn detox-test:ios-release
+          name: Run E2E Tests
+      - store_test_results:
+          path: ~/project/e2e/artifacts/ios-junit.xml
+      - store_artifacts:
+          path: ~/project/e2e/artifacts
 
   test_android_release:
     executor:
@@ -135,18 +162,27 @@ jobs:
 workflows:
   "Pipeline":
     jobs:
-      - install-and-test
-
+      - build:
+          filters:
+            branches:
+              only: master
+      - test:
+          requires:
+            - build
+      - sonar-qube:
+          requires:
+            - test
       - build_ios_release:
           requires:
-            - install-and-test
-#      - test_ios_release:
-#          requires:
-#            - build_ios_release
-
+            - build
+            - test
+            - sonar-qube
       - build_android_release:
           requires:
-            - install-and-test
-#      - test_android_release:
-#          requires:
-#            - build_android_release
+            - sonar-qube
+      - test_ios_release:
+          requires:
+            - build_ios_release
+      - test_android_release:
+          requires:
+            - build_android_release
