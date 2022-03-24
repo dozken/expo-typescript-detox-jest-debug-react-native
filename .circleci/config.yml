@@ -36,8 +36,7 @@ jobs:
           #          command: |
           #            TEST=$(circleci tests glob "./src/**/*.spec.tsx" | circleci tests split --split-by=timings)
           #            NODE_OPTIONS=--max_old_space_size=4096 JEST_JUNIT_OUTPUT_DIR="./test-results" JEST_JUNIT_OUTPUT_NAME="junit-${CIRCLE_NODE_INDEX}.xml" yarn test:coverage --watchAll=false --maxWorkers=4 $TEST
-          command: echo "jest"
-#          NODE_OPTIONS=--max_old_space_size=4096 JEST_JUNIT_OUTPUT_DIR="./test-results" JEST_JUNIT_OUTPUT_NAME="junit-${CIRCLE_NODE_INDEX}.xml" yarn test:coverage --watchAll=false --maxWorkers=4
+          command: NODE_OPTIONS=--max_old_space_size=4096 JEST_JUNIT_OUTPUT_DIR="./test-results" JEST_JUNIT_OUTPUT_NAME="junit-${CIRCLE_NODE_INDEX}.xml" yarn test:coverage --watchAll=false --maxWorkers=4
           name: Jest
       - store_artifacts:
           path: ~/project/coverage
