@@ -10,10 +10,14 @@ describe('Example', () => {
   });
 
   it('should have welcome screen', async () => {
+    await waitFor(element(by.id('tab-view-text'))).toBeVisible().withTimeout(4000);
+  });
+
+  xit('should have welcome screen', async () => {
     await waitFor(element(by.text('Tab One')).atIndex(0)).toBeVisible().withTimeout(4000);
   });
 
-  it('expect testText', async  () =>{
+  xit('expect testText', async  () =>{
     await waitFor(element(by.text('testText')).atIndex(0)).toBeVisible().withTimeout(3000);
   });
 

@@ -1,7 +1,6 @@
 version: 2.1
 
 orbs:
-  node: circleci/node@5.0.1
   rn: react-native-community/react-native@6.8.1
   android: circleci/android@2.0.0
   mac: circleci/macos@2.1.0
@@ -44,10 +43,10 @@ jobs:
           path: ~/project/test-report.xml
       - store_test_results:
           path: ~/project/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - test-report.xml
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - test-report.xml
 
   sonar-qube:
     docker:
@@ -151,6 +150,9 @@ jobs:
           post-emulator-launch-assemble-command: "pwd"
       - android/disable-animations
       - run:
+          command: npx detox clean-framework-cache && npx detox build-framework-cache
+          name: Clean Detox Cache
+      - run:
           command: npm run detox-test:android-release
           name: Run E2E Tests
       - store_test_results:
@@ -176,12 +178,12 @@ workflows:
             - build
             - test
             - sonar-qube
-      - build_android_release:
-          requires:
-            - sonar-qube
+#      - build_android_release:
+#          requires:
+#            - sonar-qube
       - test_ios_release:
           requires:
             - build_ios_release
-      - test_android_release:
-          requires:
-            - build_android_release
+#      - test_android_release:
+#          requires:
+#            - build_android_release
