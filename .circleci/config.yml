@@ -103,7 +103,7 @@ jobs:
 
 
   test_ios_release:
-    parallelism: 4
+#    parallelism: 4
     macos:
       xcode: 13.3.0
     steps:
@@ -126,8 +126,9 @@ jobs:
           name: Clean Detox Cache
       - run:
           command: |
-            TEST_FILES=$(circleci tests glob "e2e/*.e2e.js" | circleci tests split --split-by=timings)
-            yarn detox-test:ios-release $TEST_FILES
+            yarn detox-test:ios-release
+#            TEST_FILES=$(circleci tests glob "e2e/*.e2e.js" | circleci tests split --split-by=timings)
+#            yarn detox-test:ios-release $TEST_FILES
           name: Run E2E Tests
       - store_test_results:
           path: ~/project/e2e/artifacts/ios-junit.xml
