@@ -11,9 +11,6 @@ jobs:
       - image: cimg/node:16.14.2
     steps:
       - checkout
-      - run: |
-          TEST_FILES=$(circleci tests glob "e2e/*.e2e.js" | circleci tests split --split-by=timings)
-          echo $TEST_FILES
       - rn/yarn_install
       - run:
           command: echo "yarn lint"
@@ -129,8 +126,8 @@ jobs:
           name: Clean Detox Cache
       - run:
           command: |
-            echo (circleci tests glob "e2e/tests/*.e2e.js" | circleci tests split --split-by=timings)
-            yarn detox-test:ios-release
+            TEST_FILES=$(circleci tests glob "e2e/*.e2e.js" | circleci tests split --split-by=timings)
+            yarn detox-test:ios-release $TEST_FILES
           name: Run E2E Tests
       - store_test_results:
           path: ~/project/e2e/artifacts/ios-junit.xml
