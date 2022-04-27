@@ -26,3 +26,6 @@
 ### Links
 https://github.com/expo/config-plugins/tree/master/packages/detox  
 https://github.com/wix/Detox/blob/master/examples/demo-react-native/detox.config.js
+
+
+edit with vscode browser
