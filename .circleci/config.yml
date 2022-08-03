@@ -166,7 +166,7 @@ jobs:
           path: ~/project/e2e/artifacts
 
 workflows:
-  "Pipeline":
+  pipeline:
     jobs:
       - build:
           filters:
@@ -178,17 +178,18 @@ workflows:
       - sonar-qube:
           requires:
             - test
-      - build_ios_release:
+      - build_android_release:
           requires:
-            - build
-            - test
             - sonar-qube
-#      - build_android_release:
-#          requires:
-#            - sonar-qube
-      - test_ios_release:
+      - test_android_release:
           requires:
-            - build_ios_release
-#      - test_android_release:
-#          requires:
-#            - build_android_release
+            - build_android_release
+      # - build_ios_release:
+      #     requires:
+      #       - build
+      #       - test
+      #       - sonar-qube
+
+      # - test_ios_release:
+      #     requires:
+      #       - build_ios_release
